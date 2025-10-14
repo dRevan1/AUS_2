@@ -103,6 +103,41 @@ namespace SEM_1
             return current;
         }
 
+        protected virtual BinarySearchTreeNode<T> CreateNode(T data)
+        {
+            return new BinarySearchTreeNode<T> { Data = data };
+        }
+
+        public BinarySearchTreeNode<T>? FindMin()
+        {
+            if (Root == null)
+            {
+                Console.WriteLine("The tree is empty.");
+                return null;
+            }
+            BinarySearchTreeNode<T> current = Root;
+            while (current.LeftChild != null)
+            {
+                current = current.LeftChild;
+            }
+            return current;
+        }
+
+        public BinarySearchTreeNode<T>? FindMax()
+        {
+            if (Root == null)
+            {
+                Console.WriteLine("The tree is empty.");
+                return null;
+            }
+            BinarySearchTreeNode<T> current = Root;
+            while (current.RightChild != null)
+            {
+                current = current.RightChild;
+            }
+            return current;
+        }
+
         public BinarySearchTreeNode<T>? Find(T data)
         {
             BinarySearchTreeNode<T>? node = TryToFindNode(data);
@@ -115,21 +150,22 @@ namespace SEM_1
             return null;
         }
 
-        public void Insert(T data)
+        public virtual BinarySearchTreeNode<T>? Insert(T data)
         {
             BinarySearchTreeNode<T>? parent = TryToFindNode(data);
             if (parent == null) // strom je prázdny - uložíme do koreňa
             {
-                Root = new BinarySearchTreeNode<T> { Data = data };
-                return;
+                Root = CreateNode(data);
+                return null;
             }
             if (parent.Data.CompareTo(data) == 0)
             {
                 Console.WriteLine("Value is already in the tree.");
-                return;
+                return null;
             }
 
-            BinarySearchTreeNode<T> nodeToInsert = new BinarySearchTreeNode<T> { Data = data, Parent = parent };
+            BinarySearchTreeNode<T> nodeToInsert = CreateNode(data);
+            nodeToInsert.Parent = parent;
             if (parent.Data.CompareTo(data) < 0)
             {
                 parent.RightChild = nodeToInsert;
@@ -138,9 +174,10 @@ namespace SEM_1
             {
                 parent.LeftChild = nodeToInsert;
             }
+            return nodeToInsert;
         }
 
-        public void Delete(T data)
+        public virtual void Delete(T data)
         {
             BinarySearchTreeNode<T>? nodeToDelete = Find(data);
             if (nodeToDelete == null)
