@@ -14,15 +14,29 @@ namespace SEM_1
             return new AVLNode<T> { Data = data };
         }
 
-        public override BinarySearchTreeNode<T>? Insert(T data)
+        public override void Insert(T data)
         {
-           AVLNode<T> insertedNode = (AVLNode<T>)base.Insert(data)!;
-           return insertedNode;
+            AVLNode<T>? insertedNode = InsertNode(data) as AVLNode<T>;
+            if (insertedNode == null)
+            {
+                return;
+            }
         }
 
         public override void Delete(T data)
         {
-            base.Delete(data);
+            AVLNode<T>? nodeToDelete = TryToFindNode(data) as AVLNode<T>;
+            if (nodeToDelete == null || nodeToDelete.Data.CompareTo(data) != 0)
+            {
+                Console.WriteLine("Value not found in the tree.");
+                return;
+            }
+
+            AVLNode<T>? deletedNodeParent = DeleteNode(nodeToDelete) as AVLNode<T>;
+            if (deletedNodeParent == null)
+            {
+                return;
+            }
         }
     }
 }
