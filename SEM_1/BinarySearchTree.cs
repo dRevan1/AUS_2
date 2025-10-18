@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace SEM_1
 {
-   public class BinarySearchTree<T> where T : IComparable<T>
+    public class BinarySearchTree<T> where T : IComparable<T>
     {
-       public BinarySearchTreeNode<T>? Root { get; set; }
+        public BinarySearchTreeNode<T>? Root { get; set; }
 
 
         private BinarySearchTreeNode<T>? FindSuccessor(BinarySearchTreeNode<T> node)
@@ -36,7 +36,7 @@ namespace SEM_1
         // inak vráti rodiča, kde by mal byť node s hľadanými dátami (použitie pri insert)
         // Používa sa aj pri hľadaní hraníc pre intervalové vyhľadávanie, na rovnakom princípe
         // vráti vhodný vrchol, od ktorého sa dá určiť hranica (min/max)
-        protected BinarySearchTreeNode<T>? TryToFindNode(T data) 
+        protected BinarySearchTreeNode<T>? TryToFindNode(T data)
         {
             if (Root == null)
             {
@@ -207,8 +207,9 @@ namespace SEM_1
         public LinkedList<T> InOrderTraversal()
         {
             BinarySearchTreeNode<T>? node = Root;
-            if (Root == null) { 
-                return new LinkedList<T>(); 
+            if (Root == null)
+            {
+                return new LinkedList<T>();
             }
             Stack<BinarySearchTreeNode<T>> nodeStack = new();
             LinkedList<T> dataList = new LinkedList<T>();
@@ -234,8 +235,9 @@ namespace SEM_1
         {
             BinarySearchTreeNode<T>? node = Root;
             LinkedList<T> dataList = new LinkedList<T>();
-            if (Root == null || min.CompareTo(max) > 0) {
-                return dataList; 
+            if (Root == null || min.CompareTo(max) > 0)
+            {
+                return dataList;
             }
             Stack<BinarySearchTreeNode<T>> nodeStack = new();
 
@@ -268,6 +270,72 @@ namespace SEM_1
                 }
             }
             return dataList;
+        }
+
+        protected void RotateRight(BinarySearchTreeNode<T> pivot)
+        {
+            BinarySearchTreeNode<T>? pivotParent = pivot.Parent;
+            BinarySearchTreeNode<T>? pivotLeftChild = pivot.LeftChild;
+            if (pivotLeftChild == null)
+            {
+                return;
+            }
+
+            pivot.LeftChild = pivotLeftChild.RightChild;  // výmena pravý syn ľavého syna pivotu -> pivotov ľavý syn
+            if (pivotLeftChild.RightChild != null)
+            {
+                pivotLeftChild.RightChild.Parent = pivot;
+            }
+
+            pivotLeftChild.Parent = pivotParent; // výmena rodiča pivotu -> rodič ľavého syna pivotu
+            if (pivotParent == null)
+            {
+                Root = pivotLeftChild;
+            }
+            else if (pivotParent.LeftChild == pivot)
+            {
+                pivotParent.LeftChild = pivotLeftChild;
+            }
+            else
+            {
+                pivotParent.RightChild = pivotLeftChild;
+            }
+
+            pivotLeftChild.RightChild = pivot; // výmena pivot -> pravý syn ľavého syna pivotu
+            pivot.Parent = pivotLeftChild;
+        }
+
+        protected void RotateLeft(BinarySearchTreeNode<T> pivot)
+        {
+            BinarySearchTreeNode<T>? pivotParent = pivot.Parent;
+            BinarySearchTreeNode<T>? pivotRightChild = pivot.RightChild;
+            if (pivotRightChild == null)
+            {
+                return;
+            }
+
+            pivot.RightChild = pivotRightChild.LeftChild;  // výmena ľavý syn pravého syna pivotu -> pivotov pravý syn
+            if (pivotRightChild.LeftChild != null)
+            {
+                pivotRightChild.LeftChild.Parent = pivot;
+            }
+
+            pivotRightChild.Parent = pivotParent; // výmena rodiča pivotu -> rodič pravého syna pivotu
+            if (pivotParent == null)
+            {
+                Root = pivotRightChild;
+            }
+            else if (pivotParent.LeftChild == pivot)
+            {
+                pivotParent.LeftChild = pivotRightChild;
+            }
+            else
+            {
+                pivotParent.RightChild = pivotRightChild;
+            }
+
+            pivotRightChild.LeftChild = pivot; // výmena pivot -> ľavý syn pravého syna pivotu
+            pivot.Parent = pivotRightChild;
         }
     }
 }
