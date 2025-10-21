@@ -99,13 +99,13 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
 
         while (parentNode != null)
         {
-            if (parentNode.LeftChild == node)
+            if (node == parentNode.LeftChild)
             {
-                parentNode.HeightLeft += 1;
+                parentNode.HeightLeft = Math.Max(node.HeightLeft, node.HeightRight) + 1;
             }
             else
             {
-                parentNode.HeightRight += 1;
+                parentNode.HeightRight = Math.Max(node.HeightLeft, node.HeightRight) + 1;
             }
 
             int balanceFactor = parentNode.HeightLeft - parentNode.HeightRight;
@@ -186,5 +186,38 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
                 }
             }
         }
+    }
+
+    public void InOrderBalanceCheck()
+    {
+        AVLNode<T>? node = Root as AVLNode<T>;
+        if (Root == null)
+        {
+            return;
+        }
+        Stack<BinarySearchTreeNode<T>> nodeStack = new();
+
+        while (nodeStack.Count != 0 || node != null)
+        {
+            if (node != null)
+            {
+                nodeStack.Push(node);
+                node = node.LeftChild as AVLNode<T>;
+            }
+            else
+            {
+                node = nodeStack.Pop() as AVLNode<T>;
+                if (node.HeightLeft >= 0 && node.HeightRight >= 0)
+                {
+                    if ((node.HeightLeft - node.HeightRight > 1) || (node.HeightRight - node.HeightLeft > 1))
+                    {
+                        Console.WriteLine($"Unbalanced node: Left height = {node.HeightLeft}, Right height = {node.HeightRight}");
+                        return;
+                    }
+                }
+                node = node.RightChild as AVLNode<T>;
+            }
+        }
+        Console.WriteLine("AVL tree is balanced.");
     }
 }
