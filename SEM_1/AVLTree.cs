@@ -3,13 +3,13 @@
 public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
 {
 
-    private void RotateRight(AVLNode<T> pivot)
+    private void RotateRight(AVLNode<T> pivot) // zaobaľuje pravú rotáciu, vyberá, či spraviť jednoduchú, alebo ľavo-pravú
     {
         AVLNode<T>? leftChild = pivot.LeftChild as AVLNode<T>;
         if (leftChild!.HeightLeft >= leftChild.HeightRight)
         {
             RotateSimpleRight(pivot);
-            UpdateHeights(pivot);
+            UpdateHeights(pivot); // aktualizácia výšok podstromov po rotácii, je upravený pivot vrchol a ten, ktorý ho nahradil
         }
         else
         {
@@ -17,7 +17,7 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
         }
     }
 
-    private void RotateLeft(AVLNode<T> pivot)
+    private void RotateLeft(AVLNode<T> pivot) // zaobaľuje ľavú rotáciu, vyberá, či spraviť jednoduchú, alebo pravo-ľavú
     {
         AVLNode<T>? rightChild = pivot.RightChild as AVLNode<T>;
         if (rightChild!.HeightRight >= rightChild.HeightLeft)
@@ -31,12 +31,12 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
         }
     }
 
-    protected override BinarySearchTreeNode<T> CreateNode(T data)
+    protected override BinarySearchTreeNode<T> CreateNode(T data) // vytvára vrchol, aby bol typu AVLNode
     {
         return new AVLNode<T> { Data = data, HeightLeft = 0, HeightRight = 0 }; 
     }
 
-    protected void RotateLeftRight(AVLNode<T> leftPivot, AVLNode<T> rightPivot)
+    protected void RotateLeftRight(AVLNode<T> leftPivot, AVLNode<T> rightPivot) // ľavo-pravá rotácia
     {
         RotateSimpleLeft(leftPivot);
         UpdateHeights(leftPivot);
@@ -44,7 +44,7 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
         UpdateHeights(rightPivot);
     }
 
-    protected void RotateRightLeft(AVLNode<T> leftPivot, AVLNode<T> rightPivot)
+    protected void RotateRightLeft(AVLNode<T> leftPivot, AVLNode<T> rightPivot) // pravo-ľavá rotácia
     {
         RotateSimpleRight(rightPivot);
         UpdateHeights(rightPivot);
@@ -61,13 +61,13 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
         }
         AVLNode<T>? childNode;
 
-        if (pivotParent.LeftChild == pivot)
+        if (pivotParent.LeftChild == pivot) // ak sme rotovali do ľava
         {
             childNode = pivot.RightChild as AVLNode<T>;
             pivot.HeightRight = childNode != null ? Math.Max(childNode.HeightLeft, childNode.HeightRight) + 1 : 0;
             pivotParent.HeightLeft = Math.Max(pivot.HeightLeft, pivot.HeightRight) + 1;
         }
-        else
+        else // ak sme rotovali do prava
         {
             childNode = pivot.LeftChild as AVLNode<T>;
             pivot.HeightLeft = childNode != null ? Math.Max(childNode.HeightLeft, childNode.HeightRight) + 1 : 0;
@@ -133,12 +133,12 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
             return;
         }
 
-        AVLNode<T>? parentNode = DeleteNode(nodeToDelete) as AVLNode<T>;
+        AVLNode<T>? parentNode = DeleteNode(nodeToDelete) as AVLNode<T>; // parent vymazaaného vrcholu
         if (parentNode == null)
         {
             return;
         }
-        AVLNode<T>? node = parentNode.LeftChild as AVLNode<T>;
+        AVLNode<T>? node = parentNode.LeftChild as AVLNode<T>; // úprava výšok otca
         parentNode.HeightLeft = node != null ? Math.Max(node.HeightLeft, node.HeightRight) + 1 : 0;
         node = parentNode.RightChild as AVLNode<T>;
         parentNode.HeightRight = node != null ? Math.Max(node.HeightLeft, node.HeightRight) + 1 : 0;
@@ -188,7 +188,7 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
         }
     }
 
-    public void InOrderBalanceCheck()
+    public void InOrderBalanceCheck() // testovacia metóda na skontrolovanie vyváženia stromu
     {
         AVLNode<T>? node = Root as AVLNode<T>;
         if (Root == null)

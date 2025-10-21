@@ -57,7 +57,7 @@ public class BinarySearchTree<T> where T : IComparable<T>
         return parent;
     }
 
-    protected BinarySearchTreeNode<T>? InsertNode(T data)
+    protected BinarySearchTreeNode<T>? InsertNode(T data) // vráti potom vrchol, čo sa uložil, použijeme v AVL aby sme sa mohli posúvať smerom ku koreňu
     {
         BinarySearchTreeNode<T>? parent = TryToFindNode(data);
         if (parent == null) // strom je prázdny - uložíme do koreňa
@@ -84,7 +84,7 @@ public class BinarySearchTree<T> where T : IComparable<T>
         return nodeToInsert;
     }
 
-    protected BinarySearchTreeNode<T>? DeleteNode(BinarySearchTreeNode<T> node)
+    protected BinarySearchTreeNode<T>? DeleteNode(BinarySearchTreeNode<T> node) // vráti rodiča vymazaného vrcholu, použijeme v AVL aby sme sa mohli posúvať smerom ku koreňu
     {
         BinarySearchTreeNode<T>? parent = node.Parent;
         if (node.LeftChild == null && node.RightChild == null) // bez potomkov/synov
@@ -207,7 +207,7 @@ public class BinarySearchTree<T> where T : IComparable<T>
         Stack<BinarySearchTreeNode<T>> nodeStack = new();
         List<T> dataList = new List<T>();
 
-        while (nodeStack.Count != 0 || node != null) // AI - dokumentácia
+        while (nodeStack.Count != 0 || node != null)
         {
             if (node != null)
             {
