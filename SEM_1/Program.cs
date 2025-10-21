@@ -1,5 +1,7 @@
 ﻿using SEM_1;
 
-BinarySearchTree<int> tree = new BinarySearchTree<int>();
-AVLTree<int> avlTree = new AVLTree<int>();
+Tester tester = new Tester();
+BinarySearchTree<int> bst = new BinarySearchTree<int>();
+AVLTree<int> avl = new AVLTree<int>();
 
+tester.BSTBaseTest(10000, avl);

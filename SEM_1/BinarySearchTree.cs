@@ -1,341 +1,333 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace SEM_1;
 
-namespace SEM_1
+public class BinarySearchTree<T> where T : IComparable<T>
 {
-    public class BinarySearchTree<T> where T : IComparable<T>
+    public BinarySearchTreeNode<T>? Root { get; set; }
+
+
+    private BinarySearchTreeNode<T>? FindSuccessor(BinarySearchTreeNode<T> node)
     {
-        public BinarySearchTreeNode<T>? Root { get; set; }
-
-
-        private BinarySearchTreeNode<T>? FindSuccessor(BinarySearchTreeNode<T> node)
+        if (node.RightChild == null)
         {
-            if (node.RightChild == null)
-            {
-                return null;
-            }
-            BinarySearchTreeNode<T> current = node.RightChild!;
-            while (current.LeftChild != null)
-            {
-                current = current.LeftChild;
-            }
-            return current;
+            return null;
         }
-
-
-        protected virtual BinarySearchTreeNode<T> CreateNode(T data)
+        BinarySearchTreeNode<T> current = node.RightChild!;
+        while (current.LeftChild != null)
         {
-            return new BinarySearchTreeNode<T> { Data = data };
+            current = current.LeftChild;
         }
+        return current;
+    }
 
-        // Vráti node ak nájde (napr. pri insert a delete kontrolujeme, či existuje),
-        // inak vráti rodiča, kde by mal byť node s hľadanými dátami (použitie pri insert)
-        // Používa sa aj pri hľadaní hraníc pre intervalové vyhľadávanie, na rovnakom princípe
-        // vráti vhodný vrchol, od ktorého sa dá určiť hranica (min/max)
-        protected BinarySearchTreeNode<T>? TryToFindNode(T data)
+
+    protected virtual BinarySearchTreeNode<T> CreateNode(T data)
+    {
+        return new BinarySearchTreeNode<T> { Data = data };
+    }
+
+    // Vráti node ak nájde (napr. pri insert a delete kontrolujeme, či existuje),
+    // inak vráti rodiča, kde by mal byť node s hľadanými dátami (použitie pri insert)
+    // Používa sa aj pri hľadaní hraníc pre intervalové vyhľadávanie, na rovnakom princípe
+    // vráti vhodný vrchol, od ktorého sa dá určiť hranica (min/max)
+    protected BinarySearchTreeNode<T>? TryToFindNode(T data)
+    {
+        if (Root == null)
         {
-            if (Root == null)
-            {
-                return null;
-            }
-            BinarySearchTreeNode<T>? current = Root;
-            BinarySearchTreeNode<T> parent = Root;
-
-            while (current != null)
-            {
-                parent = current;
-                if (current.Data.CompareTo(data) < 0)
-                {
-                    current = current.RightChild;
-                }
-                else if (current.Data.CompareTo(data) > 0)
-                {
-                    current = current.LeftChild;
-                }
-                else
-                {
-                    return current;
-                }
-            }
-            return parent;
+            return null;
         }
+        BinarySearchTreeNode<T>? current = Root;
+        BinarySearchTreeNode<T> parent = Root;
 
-        protected BinarySearchTreeNode<T>? InsertNode(T data)
+        while (current != null)
         {
-            BinarySearchTreeNode<T>? parent = TryToFindNode(data);
-            if (parent == null) // strom je prázdny - uložíme do koreňa
-            {
-                Root = CreateNode(data);
-                return Root;
-            }
-            if (parent.Data.CompareTo(data) == 0)
-            {
-                Console.WriteLine("Value is already in the tree.");
-                return null;
-            }
-
-            BinarySearchTreeNode<T> nodeToInsert = CreateNode(data);
-            nodeToInsert.Parent = parent;
-            if (parent.Data.CompareTo(data) < 0)
-            {
-                parent.RightChild = nodeToInsert;
-            }
-            else
-            {
-                parent.LeftChild = nodeToInsert;
-            }
-            return nodeToInsert;
-        }
-
-        protected BinarySearchTreeNode<T>? DeleteNode(BinarySearchTreeNode<T> node)
-        {
-            BinarySearchTreeNode<T>? parent = node.Parent;
-            if (node.LeftChild == null && node.RightChild == null) // bez potomkov/synov
-            {
-                if (parent == null) // ak je koreň
-                {
-                    Root = null;
-                    return null;
-                }
-                if (parent.LeftChild == node)
-                {
-                    parent.LeftChild = null;
-                }
-                else
-                {
-                    parent.RightChild = null;
-                }
-            }
-            else if (node.LeftChild != null && node.RightChild != null) // má oboch synov
-            {
-                BinarySearchTreeNode<T> successor = FindSuccessor(node)!;
-                node.Data = successor.Data;
-                DeleteNode(successor);
-            }
-            else
-            {
-                BinarySearchTreeNode<T> childToPromote = (node.LeftChild != null) ? node.LeftChild! : node.RightChild!;
-
-                if (parent == null) // ak je koreň
-                {
-                    Root = childToPromote;
-                    Root.Parent = null;
-                    return null;
-                }
-
-
-                if (parent.LeftChild == node)
-                {
-                    parent.LeftChild = childToPromote;
-                }
-                else
-                {
-                    parent.RightChild = childToPromote;
-                }
-                childToPromote.Parent = parent;
-            }
-            return parent;
-        }
-
-
-        public T? FindMin()
-        {
-            if (Root == null)
-            {
-                Console.WriteLine("The tree is empty.");
-                return default;
-            }
-            BinarySearchTreeNode<T> current = Root;
-            while (current.LeftChild != null)
-            {
-                current = current.LeftChild;
-            }
-            return current.Data;
-        }
-
-        public T? FindMax()
-        {
-            if (Root == null)
-            {
-                Console.WriteLine("The tree is empty.");
-                return default;
-            }
-            BinarySearchTreeNode<T> current = Root;
-            while (current.RightChild != null)
+            parent = current;
+            if (current.Data.CompareTo(data) < 0)
             {
                 current = current.RightChild;
             }
-            return current.Data;
+            else if (current.Data.CompareTo(data) > 0)
+            {
+                current = current.LeftChild;
+            }
+            else
+            {
+                return current;
+            }
+        }
+        return parent;
+    }
+
+    protected BinarySearchTreeNode<T>? InsertNode(T data)
+    {
+        BinarySearchTreeNode<T>? parent = TryToFindNode(data);
+        if (parent == null) // strom je prázdny - uložíme do koreňa
+        {
+            Root = CreateNode(data);
+            return Root;
+        }
+        if (parent.Data.CompareTo(data) == 0)
+        {
+            Console.WriteLine("Value is already in the tree.");
+            return null;
         }
 
-        public T? Find(T data)
+        BinarySearchTreeNode<T> nodeToInsert = CreateNode(data);
+        nodeToInsert.Parent = parent;
+        if (parent.Data.CompareTo(data) < 0)
         {
-            BinarySearchTreeNode<T>? node = TryToFindNode(data);
-            if (node != null && node.Data.CompareTo(data) == 0)
+            parent.RightChild = nodeToInsert;
+        }
+        else
+        {
+            parent.LeftChild = nodeToInsert;
+        }
+        return nodeToInsert;
+    }
+
+    protected BinarySearchTreeNode<T>? DeleteNode(BinarySearchTreeNode<T> node)
+    {
+        BinarySearchTreeNode<T>? parent = node.Parent;
+        if (node.LeftChild == null && node.RightChild == null) // bez potomkov/synov
+        {
+            if (parent == null) // ak je koreň
             {
-                return node.Data;
+                Root = null;
+                return null;
+            }
+            if (parent.LeftChild == node)
+            {
+                parent.LeftChild = null;
+            }
+            else
+            {
+                parent.RightChild = null;
+            }
+        }
+        else if (node.LeftChild != null && node.RightChild != null) // má oboch synov
+        {
+            BinarySearchTreeNode<T> successor = FindSuccessor(node)!;
+            node.Data = successor.Data;
+            parent = DeleteNode(successor);
+        }
+        else
+        {
+            BinarySearchTreeNode<T> childToPromote = (node.LeftChild != null) ? node.LeftChild! : node.RightChild!;
+
+            if (parent == null) // ak je koreň
+            {
+                Root = childToPromote;
+                Root.Parent = null;
+                return Root;
             }
 
-            Console.WriteLine("Value not found in the tree.");
+
+            if (parent.LeftChild == node)
+            {
+                parent.LeftChild = childToPromote;
+            }
+            else
+            {
+                parent.RightChild = childToPromote;
+            }
+            childToPromote.Parent = parent;
+        }
+        return parent;
+    }
+
+
+    public T? FindMin()
+    {
+        if (Root == null)
+        {
+            //Console.WriteLine("The tree is empty.");
             return default;
         }
-
-        public virtual void Insert(T data)
+        BinarySearchTreeNode<T> current = Root;
+        while (current.LeftChild != null)
         {
-            BinarySearchTreeNode<T>? insertedNode = InsertNode(data);
-            if (insertedNode == null)
-            {
-                return;
-            }
+            current = current.LeftChild;
+        }
+        return current.Data;
+    }
+
+    public T? FindMax()
+    {
+        if (Root == null)
+        {
+            //Console.WriteLine("The tree is empty.");
+            return default;
+        }
+        BinarySearchTreeNode<T> current = Root;
+        while (current.RightChild != null)
+        {
+            current = current.RightChild;
+        }
+        return current.Data;
+    }
+
+    public T? Find(T data)
+    {
+        BinarySearchTreeNode<T>? node = TryToFindNode(data);
+        if (node != null && node.Data.CompareTo(data) == 0)
+        {
+            return node.Data;
         }
 
-        public virtual void Delete(T data)
+        //Console.WriteLine("Value not found in the tree.");
+        return default;
+    }
+
+    public virtual void Insert(T data)
+    {
+        BinarySearchTreeNode<T>? insertedNode = InsertNode(data);
+        if (insertedNode == null)
         {
-            BinarySearchTreeNode<T>? nodeToDelete = TryToFindNode(data);
-            if (nodeToDelete == null || nodeToDelete.Data.CompareTo(data) != 0)
-            {
-                Console.WriteLine("Value not found in the tree.");
-                return;
-            }
-            DeleteNode(nodeToDelete);
+            return;
         }
+    }
 
-        public LinkedList<T> InOrderTraversal()
+    public virtual void Delete(T data)
+    {
+        BinarySearchTreeNode<T>? nodeToDelete = TryToFindNode(data);
+        if (nodeToDelete == null || nodeToDelete.Data.CompareTo(data) != 0)
         {
-            BinarySearchTreeNode<T>? node = Root;
-            if (Root == null)
-            {
-                return new LinkedList<T>();
-            }
-            Stack<BinarySearchTreeNode<T>> nodeStack = new();
-            LinkedList<T> dataList = new LinkedList<T>();
+            //Console.WriteLine("Value not found in the tree.");
+            return;
+        }
+        DeleteNode(nodeToDelete);
+    }
 
-            while (nodeStack.Count != 0 || node != null) // AI - dokumentácia
+    public List<T> InOrderTraversal()
+    {
+        BinarySearchTreeNode<T>? node = Root;
+        if (Root == null)
+        {
+            return new List<T>();
+        }
+        Stack<BinarySearchTreeNode<T>> nodeStack = new();
+        List<T> dataList = new List<T>();
+
+        while (nodeStack.Count != 0 || node != null) // AI - dokumentácia
+        {
+            if (node != null)
             {
-                if (node != null)
+                nodeStack.Push(node);
+                node = node.LeftChild;
+            }
+            else
+            {
+                node = nodeStack.Pop();
+                dataList.Add(node.Data);
+                node = node.RightChild;
+            }
+        }
+        return dataList;
+    }
+
+    public List<T> IntervalSearch(T min, T max)
+    {
+        BinarySearchTreeNode<T>? node = Root;
+        List<T> dataList = new List<T>();
+        if (Root == null || min.CompareTo(max) > 0)
+        {
+            return dataList;
+        }
+        Stack<BinarySearchTreeNode<T>> nodeStack = new();
+
+        while (nodeStack.Count != 0 || node != null)
+        {
+            if (node != null)
+            {
+                if (node.Data.CompareTo(min) >= 0)
                 {
                     nodeStack.Push(node);
                     node = node.LeftChild;
                 }
                 else
                 {
-                    node = nodeStack.Pop();
-                    dataList.AddLast(node.Data);
                     node = node.RightChild;
                 }
             }
-            return dataList;
-        }
-
-        public LinkedList<T> IntervalSearch(T min, T max)
-        {
-            BinarySearchTreeNode<T>? node = Root;
-            LinkedList<T> dataList = new LinkedList<T>();
-            if (Root == null || min.CompareTo(max) > 0)
-            {
-                return dataList;
-            }
-            Stack<BinarySearchTreeNode<T>> nodeStack = new();
-
-            while (nodeStack.Count != 0 || node != null)
-            {
-                if (node != null)
-                {
-                    if (node.Data.CompareTo(min) >= 0)
-                    {
-                        nodeStack.Push(node);
-                        node = node.LeftChild;
-                    }
-                    else
-                    {
-                        node = node.RightChild;
-                    }
-                }
-                else
-                {
-                    node = nodeStack.Pop();
-                    if (node.Data.CompareTo(max) > 0)
-                    {
-                        break;
-                    }
-                    if (node.Data.CompareTo(min) >= 0)
-                    {
-                        dataList.AddLast(node.Data);
-                    }
-                    node = node.RightChild;
-                }
-            }
-            return dataList;
-        }
-
-        protected void RotateRight(BinarySearchTreeNode<T> pivot)
-        {
-            BinarySearchTreeNode<T>? pivotParent = pivot.Parent;
-            BinarySearchTreeNode<T>? pivotLeftChild = pivot.LeftChild;
-            if (pivotLeftChild == null)
-            {
-                return;
-            }
-
-            pivot.LeftChild = pivotLeftChild.RightChild;  // výmena pravý syn ľavého syna pivotu -> pivotov ľavý syn
-            if (pivotLeftChild.RightChild != null)
-            {
-                pivotLeftChild.RightChild.Parent = pivot;
-            }
-
-            pivotLeftChild.Parent = pivotParent; // výmena rodiča pivotu -> rodič ľavého syna pivotu
-            if (pivotParent == null)
-            {
-                Root = pivotLeftChild;
-            }
-            else if (pivotParent.LeftChild == pivot)
-            {
-                pivotParent.LeftChild = pivotLeftChild;
-            }
             else
             {
-                pivotParent.RightChild = pivotLeftChild;
+                node = nodeStack.Pop();
+                if (node.Data.CompareTo(max) > 0)
+                {
+                    break;
+                }
+                if (node.Data.CompareTo(min) >= 0)
+                {
+                    dataList.Add(node.Data);
+                }
+                node = node.RightChild;
             }
-
-            pivotLeftChild.RightChild = pivot; // výmena pivot -> pravý syn ľavého syna pivotu
-            pivot.Parent = pivotLeftChild;
         }
+        return dataList;
+    }
 
-        protected void RotateLeft(BinarySearchTreeNode<T> pivot)
+    protected void RotateSimpleRight(BinarySearchTreeNode<T> pivot)
+    {
+        BinarySearchTreeNode<T>? pivotParent = pivot.Parent;
+        BinarySearchTreeNode<T>? pivotLeftChild = pivot.LeftChild;
+        if (pivotLeftChild == null)
         {
-            BinarySearchTreeNode<T>? pivotParent = pivot.Parent;
-            BinarySearchTreeNode<T>? pivotRightChild = pivot.RightChild;
-            if (pivotRightChild == null)
-            {
-                return;
-            }
-
-            pivot.RightChild = pivotRightChild.LeftChild;  // výmena ľavý syn pravého syna pivotu -> pivotov pravý syn
-            if (pivotRightChild.LeftChild != null)
-            {
-                pivotRightChild.LeftChild.Parent = pivot;
-            }
-
-            pivotRightChild.Parent = pivotParent; // výmena rodiča pivotu -> rodič pravého syna pivotu
-            if (pivotParent == null)
-            {
-                Root = pivotRightChild;
-            }
-            else if (pivotParent.LeftChild == pivot)
-            {
-                pivotParent.LeftChild = pivotRightChild;
-            }
-            else
-            {
-                pivotParent.RightChild = pivotRightChild;
-            }
-
-            pivotRightChild.LeftChild = pivot; // výmena pivot -> ľavý syn pravého syna pivotu
-            pivot.Parent = pivotRightChild;
+            return;
         }
+
+        pivot.LeftChild = pivotLeftChild.RightChild;  // výmena pravý syn ľavého syna pivotu -> pivotov ľavý syn
+        if (pivotLeftChild.RightChild != null)
+        {
+            pivotLeftChild.RightChild.Parent = pivot;
+        }
+
+        pivotLeftChild.Parent = pivotParent; // výmena rodiča pivotu -> rodič ľavého syna pivotu
+        if (pivotParent == null)
+        {
+            Root = pivotLeftChild;
+        }
+        else if (pivotParent.LeftChild == pivot)
+        {
+            pivotParent.LeftChild = pivotLeftChild;
+        }
+        else
+        {
+            pivotParent.RightChild = pivotLeftChild;
+        }
+
+        pivotLeftChild.RightChild = pivot; // výmena pivot -> pravý syn ľavého syna pivotu
+        pivot.Parent = pivotLeftChild;
+    }
+
+    protected void RotateSimpleLeft(BinarySearchTreeNode<T> pivot)
+    {
+        BinarySearchTreeNode<T>? pivotParent = pivot.Parent;
+        BinarySearchTreeNode<T>? pivotRightChild = pivot.RightChild;
+        if (pivotRightChild == null)
+        {
+            return;
+        }
+
+        pivot.RightChild = pivotRightChild.LeftChild;  // výmena ľavý syn pravého syna pivotu -> pivotov pravý syn
+        if (pivotRightChild.LeftChild != null)
+        {
+            pivotRightChild.LeftChild.Parent = pivot;
+        }
+
+        pivotRightChild.Parent = pivotParent; // výmena rodiča pivotu -> rodič pravého syna pivotu
+        if (pivotParent == null)
+        {
+            Root = pivotRightChild;
+        }
+        else if (pivotParent.LeftChild == pivot)
+        {
+            pivotParent.LeftChild = pivotRightChild;
+        }
+        else
+        {
+            pivotParent.RightChild = pivotRightChild;
+        }
+
+        pivotRightChild.LeftChild = pivot; // výmena pivot -> ľavý syn pravého syna pivotu
+        pivot.Parent = pivotRightChild;
     }
 }

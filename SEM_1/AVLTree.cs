@@ -1,125 +1,189 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace SEM_1;
 
-namespace SEM_1
+public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
 {
-    public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
+
+    private void RotateRight(AVLNode<T> pivot)
     {
-
-        protected override BinarySearchTreeNode<T> CreateNode(T data)
+        AVLNode<T>? leftChild = pivot.LeftChild as AVLNode<T>;
+        if (leftChild!.HeightLeft >= leftChild.HeightRight)
         {
-            return new AVLNode<T> { Data = data, HeightLeft = 0, HeightRight = 0 }; 
+            RotateSimpleRight(pivot);
+            UpdateHeights(pivot);
         }
-
-        protected void RotateLeftRight(AVLNode<T> leftPivot, AVLNode<T> rightPivot)
+        else
         {
-            // 
+            RotateLeftRight(leftChild!, pivot);
         }
+    }
 
-        protected void RotateRightLeft(AVLNode<T> leftPivot, AVLNode<T> rightPivot)
+    private void RotateLeft(AVLNode<T> pivot)
+    {
+        AVLNode<T>? rightChild = pivot.RightChild as AVLNode<T>;
+        if (rightChild!.HeightRight >= rightChild.HeightLeft)
         {
-            // 
+            RotateSimpleLeft(pivot);
+            UpdateHeights(pivot);
         }
-
-        private void UpdateHeights(AVLNode<T> pivot) // pivot je už posunutý dole vpravo/vľavo
+        else
         {
-            AVLNode<T>? childNode;
-            if (pivot.Parent!.LeftChild == pivot)
+            RotateRightLeft(pivot, rightChild!);
+        }
+    }
+
+    protected override BinarySearchTreeNode<T> CreateNode(T data)
+    {
+        return new AVLNode<T> { Data = data, HeightLeft = 0, HeightRight = 0 }; 
+    }
+
+    protected void RotateLeftRight(AVLNode<T> leftPivot, AVLNode<T> rightPivot)
+    {
+        RotateSimpleLeft(leftPivot);
+        UpdateHeights(leftPivot);
+        RotateSimpleRight(rightPivot);
+        UpdateHeights(rightPivot);
+    }
+
+    protected void RotateRightLeft(AVLNode<T> leftPivot, AVLNode<T> rightPivot)
+    {
+        RotateSimpleRight(rightPivot);
+        UpdateHeights(rightPivot);
+        RotateSimpleLeft(leftPivot);
+        UpdateHeights(leftPivot);
+    }
+
+    private void UpdateHeights(AVLNode<T> pivot) // pivot je už posunutý dole vpravo/vľavo
+    {
+        AVLNode<T>? pivotParent = pivot.Parent as AVLNode<T>;
+        if (pivotParent == null)
+        {
+            return;
+        }
+        AVLNode<T>? childNode;
+
+        if (pivotParent.LeftChild == pivot)
+        {
+            childNode = pivot.RightChild as AVLNode<T>;
+            pivot.HeightRight = childNode != null ? Math.Max(childNode.HeightLeft, childNode.HeightRight) + 1 : 0;
+            pivotParent.HeightLeft = Math.Max(pivot.HeightLeft, pivot.HeightRight) + 1;
+        }
+        else
+        {
+            childNode = pivot.LeftChild as AVLNode<T>;
+            pivot.HeightLeft = childNode != null ? Math.Max(childNode.HeightLeft, childNode.HeightRight) + 1 : 0;
+            pivotParent.HeightRight = Math.Max(pivot.HeightLeft, pivot.HeightRight) + 1;
+        }
+    }
+
+    public override void Insert(T data)
+    {
+        AVLNode<T>? node = InsertNode(data) as AVLNode<T>; // insertnutý node
+        if (node == null || node == Root)
+        {
+            return;
+        }
+        AVLNode<T>? parentNode = node.Parent as AVLNode<T>;
+
+        if (parentNode!.LeftChild != null && parentNode.RightChild != null) // určite bude mať parenta, určite nebude root (preto ! v insertNode parent), keď je potomok aj na druhej strane
+        {
+            if (parentNode.LeftChild == node)
             {
-                childNode = pivot.RightChild as AVLNode<T>;
-                pivot.HeightRight = childNode != null ? Math.Max(childNode.HeightLeft, childNode.HeightRight) + 1 : 0;
+                parentNode.HeightLeft = 1;
             }
             else
             {
-                childNode = pivot.LeftChild as AVLNode<T>;
-                pivot.HeightLeft = childNode != null ? Math.Max(childNode.HeightLeft, childNode.HeightRight) + 1 : 0;
+                parentNode.HeightRight = 1;
             }
+            return;
         }
 
-        public override void Insert(T data)
+        while (parentNode != null)
         {
-            AVLNode<T>? node = InsertNode(data) as AVLNode<T>; // insertnutý node
-            if (node == null || Root == node)
+            if (parentNode.LeftChild == node)
+            {
+                parentNode.HeightLeft += 1;
+            }
+            else
+            {
+                parentNode.HeightRight += 1;
+            }
+
+            int balanceFactor = parentNode.HeightLeft - parentNode.HeightRight;
+            if (balanceFactor > 1) // ľavý podstrom je dlhší ako pravý
+            {
+                RotateRight(parentNode);
+                break;
+            }
+            else if (balanceFactor < -1) // pravý podstrom je dlhší ako ľavý
+            {
+                RotateLeft(parentNode);
+                break;
+            }
+            node = parentNode;
+            parentNode = parentNode.Parent as AVLNode<T>;
+        }
+    }
+
+    public override void Delete(T data)
+    {
+        AVLNode<T>? nodeToDelete = TryToFindNode(data) as AVLNode<T>;
+        if (nodeToDelete == null || nodeToDelete.Data.CompareTo(data) != 0)
+        {
+            Console.WriteLine("Value not found in the tree.");
+            return;
+        }
+
+        AVLNode<T>? parentNode = DeleteNode(nodeToDelete) as AVLNode<T>;
+        if (parentNode == null)
+        {
+            return;
+        }
+        AVLNode<T>? node = parentNode.LeftChild as AVLNode<T>;
+        parentNode.HeightLeft = node != null ? Math.Max(node.HeightLeft, node.HeightRight) + 1 : 0;
+        node = parentNode.RightChild as AVLNode<T>;
+        parentNode.HeightRight = node != null ? Math.Max(node.HeightLeft, node.HeightRight) + 1 : 0;
+
+        if (parentNode.LeftChild != null ^ parentNode.RightChild != null) // XOR, znemaná, že sa vymazal jeden z 2 potomkov parenta
+        {
+            if (parentNode.HeightLeft == 1 ^ parentNode.HeightRight == 1) // ak ten druhý potomok, čo zostal, nemá potomka, tak sme nezmenili výšku v podstrome, iba pre parenta
             {
                 return;
             }
-            AVLNode<T>? parentNode = node.Parent as AVLNode<T>;
+        } // inak bude mať určite druhú výšku 2 alebo 0, teda musíme strom vyvážiť
 
-            if (parentNode!.LeftChild != null && parentNode.RightChild != null) // určite bude mať parenta, určite nebude root (preto ! v insertNode parent), keď je potomok aj na druhej strane
+        while (parentNode != null)
+        {
+            int balanceFactor = parentNode.HeightLeft - parentNode.HeightRight;
+            if (balanceFactor > 1) // ľavý podstrom je dlhší ako pravý
             {
-                if (parentNode.LeftChild == node)
-                {
-                    parentNode.HeightLeft = 1;
-                }
-                else
-                {
-                    parentNode.HeightRight = 1;
-                }
-                return;
+                RotateRight(parentNode);
+            }
+            else if (balanceFactor < -1) // pravý podstrom je dlhší ako ľavý
+            {
+                RotateLeft(parentNode);
             }
 
-            while (parentNode != null)
+            if (balanceFactor > 1 || balanceFactor < -1)
             {
-                if (parentNode!.LeftChild == node)
-                {
-                    parentNode.HeightLeft += 1;
-                }
-                else
-                {
-                    parentNode.HeightRight += 1;
-                }
-
-                int balanceFactor = parentNode.HeightLeft - parentNode.HeightRight;
-                if (balanceFactor > 1)
-                {
-                    AVLNode<T> leftChild = parentNode.LeftChild as AVLNode<T>;
-                    if (leftChild!.HeightLeft >= leftChild.HeightRight)
-                    {
-                        RotateRight(parentNode);
-                        UpdateHeights(parentNode);
-                    }
-                    else
-                    {
-                        RotateLeftRight(leftChild!, parentNode);
-                    }
-
-                    break;
-                }
-                else if (balanceFactor < -1)
-                {
-                    AVLNode<T> rightChild = parentNode.RightChild as AVLNode<T>;
-                    if (rightChild != null && rightChild.HeightRight >= rightChild.HeightLeft)
-                    {
-                        RotateLeft(parentNode);
-                    }
-                    else
-                    {
-                        RotateRightLeft(parentNode, rightChild!);
-                    }
-
-                    break;
-                }
+                node = parentNode.Parent as AVLNode<T>;
+                parentNode = node!.Parent as AVLNode<T>;
+            }
+            else
+            {
                 node = parentNode;
                 parentNode = parentNode.Parent as AVLNode<T>;
             }
-        }
 
-        public override void Delete(T data)
-        {
-            AVLNode<T>? nodeToDelete = TryToFindNode(data) as AVLNode<T>;
-            if (nodeToDelete == null || nodeToDelete.Data.CompareTo(data) != 0)
+            if (parentNode != null)
             {
-                Console.WriteLine("Value not found in the tree.");
-                return;
-            }
-
-            AVLNode<T>? deletedNodeParent = DeleteNode(nodeToDelete) as AVLNode<T>;
-            if (deletedNodeParent == null)
-            {
-                return;
+                if (node == parentNode.LeftChild)
+                {
+                    parentNode.HeightLeft = Math.Max(node.HeightLeft, node.HeightRight) + 1;
+                }
+                else
+                {
+                     parentNode.HeightRight = Math.Max(node.HeightLeft, node.HeightRight) + 1;
+                }
             }
         }
     }
