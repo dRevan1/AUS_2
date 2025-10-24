@@ -397,7 +397,16 @@ public class Tester
             List<int> bstResult = bst.IntervalSearch(min, max);
             List<int> avlResult = avl.IntervalSearch(min, max);
 
-            for (int j = 0; j < bstResult.Count; j++)
+            if (bstResult.Count != dataList.Count - minIndex)
+            {
+                Console.WriteLine("BST interval search count is incorrect");
+            }
+            if (avlResult.Count != dataList.Count - minIndex)
+            {
+                Console.WriteLine("AVL interval search count is incorrect");
+            }
+
+            for (int j = 0; j < bstResult.Count; j++)  // ešte porovnať count
             {
                 if (bstResult.ElementAt(j) != dataList[minIndex + j])
                 {
@@ -416,7 +425,7 @@ public class Tester
         }
     }
 
-    public void AVLTreeBalanceTest(uint treeSize, uint replics)
+    public void AVLTreeBalanceTest(uint treeSize, uint replics) // prerobiť cez rekurziu
     {
         for (int i = 1; i <= replics; i++)
         {

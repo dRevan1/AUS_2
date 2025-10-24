@@ -7,11 +7,29 @@ public class BinarySearchTree<T> where T : IComparable<T>
 
     private BinarySearchTreeNode<T>? FindSuccessor(BinarySearchTreeNode<T> node)
     {
-        if (node.RightChild == null)
+        BinarySearchTreeNode<T>? current = node.RightChild;
+
+        if (current == null) // ak nie je pravý syn, tak ak existuje successor, bude to prvý rodič, ktorý má vyššiu hodnotu
         {
-            return null;
+            current = node.Parent;
+            if (current != null && current.Data.CompareTo(node.Data) == 1)
+            {
+                return current;
+            }
+            else
+            {
+                while (current != null)
+                {
+                    if (current.Data.CompareTo(node.Data) == 1)
+                    {
+                        break;
+                    }
+                    current = current.Parent;
+                }
+                return current;
+            }
         }
-        BinarySearchTreeNode<T> current = node.RightChild!;
+
         while (current.LeftChild != null)
         {
             current = current.LeftChild;
@@ -19,6 +37,19 @@ public class BinarySearchTree<T> where T : IComparable<T>
         return current;
     }
 
+    public BinarySearchTreeNode<T>? FindMinNode() // pre in order/interval
+    {
+        if (Root == null)
+        {
+            return null;
+        }
+        BinarySearchTreeNode<T> current = Root;
+        while (current.LeftChild != null)
+        {
+            current = current.LeftChild;
+        }
+        return current;
+    }
 
     protected virtual BinarySearchTreeNode<T> CreateNode(T data)
     {
@@ -27,8 +58,6 @@ public class BinarySearchTree<T> where T : IComparable<T>
 
     // Vráti node ak nájde (napr. pri insert a delete kontrolujeme, či existuje),
     // inak vráti rodiča, kde by mal byť node s hľadanými dátami (použitie pri insert)
-    // Používa sa aj pri hľadaní hraníc pre intervalové vyhľadávanie, na rovnakom princípe
-    // vráti vhodný vrchol, od ktorého sa dá určiť hranica (min/max)
     protected BinarySearchTreeNode<T>? TryToFindNode(T data)
     {
         if (Root == null)
@@ -199,69 +228,40 @@ public class BinarySearchTree<T> where T : IComparable<T>
 
     public List<T> InOrderTraversal()
     {
-        BinarySearchTreeNode<T>? node = Root;
         if (Root == null)
         {
             return new List<T>();
         }
-        Stack<BinarySearchTreeNode<T>> nodeStack = new();
         List<T> dataList = new List<T>();
+        BinarySearchTreeNode<T>? node = FindMinNode();
 
-        while (nodeStack.Count != 0 || node != null)
+        while (node != null)
         {
-            if (node != null)
-            {
-                nodeStack.Push(node);
-                node = node.LeftChild;
-            }
-            else
-            {
-                node = nodeStack.Pop();
-                dataList.Add(node.Data);
-                node = node.RightChild;
-            }
+            dataList.Add(node.Data);
+            node = FindSuccessor(node);
         }
         return dataList;
     }
 
     public List<T> IntervalSearch(T min, T max)
     {
-        BinarySearchTreeNode<T>? node = Root;
-        List<T> dataList = new List<T>();
         if (Root == null || min.CompareTo(max) > 0)
         {
-            return dataList;
+            return new List<T>();
         }
-        Stack<BinarySearchTreeNode<T>> nodeStack = new();
+        BinarySearchTreeNode<T>? node = TryToFindNode(min);
+        List<T> dataList = new List<T>();
 
-        while (nodeStack.Count != 0 || node != null)
+        while (node != null)
         {
-            if (node != null)
+            if (node.Data.CompareTo(max) == 1)
             {
-                if (node.Data.CompareTo(min) >= 0)
-                {
-                    nodeStack.Push(node);
-                    node = node.LeftChild;
-                }
-                else
-                {
-                    node = node.RightChild;
-                }
+                break;
             }
-            else
-            {
-                node = nodeStack.Pop();
-                if (node.Data.CompareTo(max) > 0)
-                {
-                    break;
-                }
-                if (node.Data.CompareTo(min) >= 0)
-                {
-                    dataList.Add(node.Data);
-                }
-                node = node.RightChild;
-            }
+            dataList.Add(node.Data);
+            node = FindSuccessor(node);
         }
+
         return dataList;
     }
 

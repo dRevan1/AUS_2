@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="SEM_1.AVLNode&lt;T&gt;">
+    <Position X="6.5" Y="3.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAgAAAAA=</HashCode>
+      <FileName>AVLNode.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SEM_1.AVLTree&lt;T&gt;">
+    <Position X="3.75" Y="3.75" Width="2.25" />
+    <Members>
+      <Method Name="CreateNode" Hidden="true" />
+      <Method Name="RotateLeft" Hidden="true" />
+      <Method Name="RotateLeftRight" Hidden="true" />
+      <Method Name="RotateRight" Hidden="true" />
+      <Method Name="RotateRightLeft" Hidden="true" />
+      <Method Name="UpdateHeights" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAgAAAAAAAEAAAAAABEAAAAAAACAAARAIAA=</HashCode>
+      <FileName>AVLTree.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SEM_1.BinarySearchTree&lt;T&gt;">
+    <Position X="0.5" Y="3.5" Width="2" />
+    <Members>
+      <Method Name="CreateNode" Hidden="true" />
+      <Method Name="DeleteNode" Hidden="true" />
+      <Method Name="FindSuccessor" Hidden="true" />
+      <Method Name="InsertNode" Hidden="true" />
+      <Method Name="RotateSimpleLeft" Hidden="true" />
+      <Method Name="RotateSimpleRight" Hidden="true" />
+      <Method Name="TryToFindNode" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>AAAAIEAAABAAACAAAAEAAAAGAAFIAAAAAGABABAAAAA=</HashCode>
+      <FileName>BinarySearchTree.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SEM_1.BinarySearchTreeNode&lt;T&gt;">
+    <Position X="6.75" Y="0.75" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAABAAAAQAAAAAAAABAAAAAAgAAAAAA=</HashCode>
+      <FileName>BinarySearchTreeNode.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SEM_1.Tester">
+    <Position X="0.5" Y="0.5" Width="2.5" />
+    <Members>
+      <Method Name="fillTreeWithData" Hidden="true" />
+      <Method Name="GetIntList" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>AEAABEAEAAAIAAAgACAAAAAAAEAAAEAAACAAAAABAAA=</HashCode>
+      <FileName>Tester.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SEM_1.TesterThirdStructure">
+    <Position X="3.5" Y="1" Width="3" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAAAgACAAAAAAAEAAAAAAACAAAAABAAA=</HashCode>
+      <FileName>TesterThirdStructure.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

@@ -1,7 +1,5 @@
 ﻿using C5;
-using System;
 using System.Diagnostics;
-
 namespace SEM_1;
 
 public class TesterThirdStructure : Tester

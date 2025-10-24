@@ -178,11 +178,11 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
             {
                 if (node == parentNode.LeftChild)
                 {
-                    parentNode.HeightLeft = Math.Max(node.HeightLeft, node.HeightRight) + 1;
+                    parentNode.HeightLeft -= 1;
                 }
                 else
                 {
-                     parentNode.HeightRight = Math.Max(node.HeightLeft, node.HeightRight) + 1;
+                     parentNode.HeightRight -= 1;
                 }
             }
         }
