@@ -12,7 +12,7 @@ public class BinarySearchTree<T> where T : IComparable<T>
         if (current == null) // ak nie je pravý syn, tak ak existuje successor, bude to prvý rodič, ktorý má vyššiu hodnotu
         {
             current = node.Parent;
-            if (current != null && current.Data.CompareTo(node.Data) == 1)
+            if (current != null && current.Data.CompareTo(node.Data) > 0)
             {
                 return current;
             }
@@ -20,7 +20,7 @@ public class BinarySearchTree<T> where T : IComparable<T>
             {
                 while (current != null)
                 {
-                    if (current.Data.CompareTo(node.Data) == 1)
+                    if (current.Data.CompareTo(node.Data) > 0)
                     {
                         break;
                     }
@@ -116,50 +116,56 @@ public class BinarySearchTree<T> where T : IComparable<T>
     protected BinarySearchTreeNode<T>? DeleteNode(BinarySearchTreeNode<T> node) // vráti rodiča vymazaného vrcholu, použijeme v AVL aby sme sa mohli posúvať smerom ku koreňu
     {
         BinarySearchTreeNode<T>? parent = node.Parent;
-        if (node.LeftChild == null && node.RightChild == null) // bez potomkov/synov
+        BinarySearchTreeNode<T>? replacement = null;
+        if (node == Root) // ak je koreň
         {
-            if (parent == null) // ak je koreň
+            if (node.LeftChild == null && node.RightChild == null)
             {
                 Root = null;
                 return null;
             }
-            if (parent.LeftChild == node)
-            {
-                parent.LeftChild = null;
-            }
-            else
-            {
-                parent.RightChild = null;
-            }
         }
-        else if (node.LeftChild != null && node.RightChild != null) // má oboch synov
+
+        if (node.LeftChild != null && node.RightChild != null) // ak má 2 deti, nájdeme successora, ten bude mať max 1
         {
-            BinarySearchTreeNode<T> successor = FindSuccessor(node)!;
-            node.Data = successor.Data;
-            parent = DeleteNode(successor);
+            BinarySearchTreeNode<T>? successor = FindSuccessor(node);
+            node.Data = successor!.Data;
+            node = successor;
+            parent = node.Parent;
+        }
+
+        if (node.RightChild != null) // ak má vrchol 1 potomka, napr. keď je successor, ale nemusí byť, tak potom musí nahradiť vymazaný vrchol
+        {
+            replacement = node.RightChild;
+        }
+        else if (node.LeftChild != null)
+        {
+            replacement = node.LeftChild;
+        }
+
+        if (parent == null) // mazanie koreňa s 1 potomkom
+        {
+            Root = replacement;
+            if (replacement != null)
+            {
+                replacement.Parent = null;
+            }
+            return null;
+        }
+
+        if (parent.LeftChild == node) // vymazanie vrcholu, teda priradenie potenciálneho potomka mazaného vrchola (alebo null) na tú stranu parenta, kde sme mazali
+        {
+            parent.LeftChild = replacement;
         }
         else
         {
-            BinarySearchTreeNode<T> childToPromote = (node.LeftChild != null) ? node.LeftChild! : node.RightChild!;
-
-            if (parent == null) // ak je koreň
-            {
-                Root = childToPromote;
-                Root.Parent = null;
-                return Root;
-            }
-
-
-            if (parent.LeftChild == node)
-            {
-                parent.LeftChild = childToPromote;
-            }
-            else
-            {
-                parent.RightChild = childToPromote;
-            }
-            childToPromote.Parent = parent;
+            parent.RightChild = replacement;
         }
+        if (replacement != null) // nakoniec ak sme nahradzovali mazaný vrchol, tak treba prehodiť parenta toho náhradníka
+        {
+            replacement.Parent = parent;
+        }
+
         return parent;
     }
 

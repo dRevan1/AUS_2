@@ -6,10 +6,19 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
     private void RotateRight(AVLNode<T> pivot) // zaobaľuje pravú rotáciu, vyberá, či spraviť jednoduchú, alebo ľavo-pravú
     {
         AVLNode<T>? leftChild = pivot.LeftChild as AVLNode<T>;
-        if (leftChild!.HeightLeft >= leftChild.HeightRight)
+        if (pivot.BalanceFactor == -2 && leftChild!.BalanceFactor <= 0)
         {
             RotateSimpleRight(pivot);
-            UpdateHeights(pivot); // aktualizácia výšok podstromov po rotácii, je upravený pivot vrchol a ten, ktorý ho nahradil
+            if (leftChild!.BalanceFactor == 0)
+            {
+                pivot.BalanceFactor = -1;
+                leftChild.BalanceFactor = 1;
+            }
+            else
+            {
+                pivot.BalanceFactor = 0;
+                leftChild.BalanceFactor = 0;
+            }     
         }
         else
         {
@@ -20,10 +29,19 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
     private void RotateLeft(AVLNode<T> pivot) // zaobaľuje ľavú rotáciu, vyberá, či spraviť jednoduchú, alebo pravo-ľavú
     {
         AVLNode<T>? rightChild = pivot.RightChild as AVLNode<T>;
-        if (rightChild!.HeightRight >= rightChild.HeightLeft)
+        if (pivot.BalanceFactor == 2 && rightChild!.BalanceFactor >= 0)
         {
             RotateSimpleLeft(pivot);
-            UpdateHeights(pivot);
+            if (rightChild!.BalanceFactor == 0)
+            {
+                pivot.BalanceFactor = 1;
+                rightChild.BalanceFactor = -1;
+            }
+            else
+            {
+                pivot.BalanceFactor = 0;
+                rightChild.BalanceFactor = 0;
+            }     
         }
         else
         {
@@ -33,94 +51,64 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
 
     protected override BinarySearchTreeNode<T> CreateNode(T data) // vytvára vrchol, aby bol typu AVLNode
     {
-        return new AVLNode<T> { Data = data, HeightLeft = 0, HeightRight = 0 }; 
+        return new AVLNode<T> { Data = data, BalanceFactor = 0 }; 
     }
 
-    protected void RotateLeftRight(AVLNode<T> leftPivot, AVLNode<T> rightPivot) // ľavo-pravá rotácia
+    protected void RotateLeftRight(AVLNode<T> leftPivot, AVLNode<T> rightPivot) // ľavo-pravá rotácia - left pivot je ten, kde rotujeme doľava, a pravý naopak
     {
+        AVLNode<T>? leftPivotChild = leftPivot.RightChild as AVLNode<T>;
         RotateSimpleLeft(leftPivot);
-        UpdateHeights(leftPivot);
-        RotateSimpleRight(rightPivot);
-        UpdateHeights(rightPivot);
+        leftPivot.BalanceFactor = (leftPivotChild!.BalanceFactor == 1) ? -1 : 0;
+        leftPivotChild.BalanceFactor = -1;
+        RotateRight(rightPivot);
     }
 
-    protected void RotateRightLeft(AVLNode<T> leftPivot, AVLNode<T> rightPivot) // pravo-ľavá rotácia
+    protected void RotateRightLeft(AVLNode<T> leftPivot, AVLNode<T> rightPivot) // pravo-ľavá rotácia, platí to isté, ako LeftRight pre pivotov
     {
+        AVLNode<T>? rightPivotChild = rightPivot.LeftChild as AVLNode<T>;
         RotateSimpleRight(rightPivot);
-        UpdateHeights(rightPivot);
-        RotateSimpleLeft(leftPivot);
-        UpdateHeights(leftPivot);
+        rightPivot.BalanceFactor = (rightPivotChild!.BalanceFactor == -1) ? 1 : 0;
+        rightPivotChild.BalanceFactor = 1;
+        RotateLeft(leftPivot);
     }
 
-    private void UpdateHeights(AVLNode<T> pivot) // pivot je už posunutý dole vpravo/vľavo
-    {
-        AVLNode<T>? pivotParent = pivot.Parent as AVLNode<T>;
-        if (pivotParent == null)
-        {
-            return;
-        }
-        AVLNode<T>? childNode;
-
-        if (pivotParent.LeftChild == pivot) // ak sme rotovali do ľava
-        {
-            childNode = pivot.RightChild as AVLNode<T>;
-            pivot.HeightRight = childNode != null ? Math.Max(childNode.HeightLeft, childNode.HeightRight) + 1 : 0;
-            pivotParent.HeightLeft = Math.Max(pivot.HeightLeft, pivot.HeightRight) + 1;
-        }
-        else // ak sme rotovali do prava
-        {
-            childNode = pivot.LeftChild as AVLNode<T>;
-            pivot.HeightLeft = childNode != null ? Math.Max(childNode.HeightLeft, childNode.HeightRight) + 1 : 0;
-            pivotParent.HeightRight = Math.Max(pivot.HeightLeft, pivot.HeightRight) + 1;
-        }
-    }
 
     public override void Insert(T data)
     {
-        AVLNode<T>? node = InsertNode(data) as AVLNode<T>; // insertnutý node
-        if (node == null || node == Root)
+        AVLNode<T>? childNode = InsertNode(data) as AVLNode<T>; // insertnutý node
+        if (childNode == null || childNode == Root)
         {
             return;
         }
-        AVLNode<T>? parentNode = node.Parent as AVLNode<T>;
+        AVLNode<T>? node = childNode.Parent as AVLNode<T>;
 
-        if (parentNode!.LeftChild != null && parentNode.RightChild != null) // určite bude mať parenta, určite nebude root (preto ! v insertNode parent), keď je potomok aj na druhej strane
+        while (node != null)
         {
-            if (parentNode.LeftChild == node)
+            if (childNode == node.LeftChild)
             {
-                parentNode.HeightLeft = 1;
+                node.BalanceFactor -= 1; 
             }
             else
             {
-                parentNode.HeightRight = 1;
-            }
-            return;
-        }
-
-        while (parentNode != null)
-        {
-            if (node == parentNode.LeftChild)
-            {
-                parentNode.HeightLeft = Math.Max(node.HeightLeft, node.HeightRight) + 1;
-            }
-            else
-            {
-                parentNode.HeightRight = Math.Max(node.HeightLeft, node.HeightRight) + 1;
+                node.BalanceFactor += 1;
             }
 
-            int balanceFactor = parentNode.HeightLeft - parentNode.HeightRight;
-            if (balanceFactor > 1) // ľavý podstrom je dlhší ako pravý
+            if (node.BalanceFactor == 0)
             {
-                RotateRight(parentNode);
                 break;
             }
-            else if (balanceFactor < -1) // pravý podstrom je dlhší ako ľavý
+            if (node.BalanceFactor == -2) // ľavý podstrom je dlhší ako pravý
             {
-                RotateLeft(parentNode);
+                RotateRight(node);
                 break;
             }
-            node = parentNode;
-            parentNode = parentNode.Parent as AVLNode<T>;
+            else if (node.BalanceFactor == 2) // pravý podstrom je dlhší ako ľavý
+            {
+                RotateLeft(node);
+                break;
+            }
+            childNode = node;
+            node = node.Parent as AVLNode<T>;
         }
     }
 
@@ -133,91 +121,57 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
             return;
         }
 
-        AVLNode<T>? parentNode = DeleteNode(nodeToDelete) as AVLNode<T>; // parent vymazaaného vrcholu
-        if (parentNode == null)
+        AVLNode<T>? node = DeleteNode(nodeToDelete) as AVLNode<T>; // parent vymazaaného vrcholu
+        if (node == null)
         {
             return;
         }
-        AVLNode<T>? node = parentNode.LeftChild as AVLNode<T>; // úprava výšok otca
-        parentNode.HeightLeft = node != null ? Math.Max(node.HeightLeft, node.HeightRight) + 1 : 0;
-        node = parentNode.RightChild as AVLNode<T>;
-        parentNode.HeightRight = node != null ? Math.Max(node.HeightLeft, node.HeightRight) + 1 : 0;
 
-        if (parentNode.LeftChild != null ^ parentNode.RightChild != null) // XOR, znemaná, že sa vymazal jeden z 2 potomkov parenta
+        AVLNode<T>? childNode = null;
+        if (node.RightChild == null && node.LeftChild == null)
         {
-            if (parentNode.HeightLeft == 1 ^ parentNode.HeightRight == 1) // ak ten druhý potomok, čo zostal, nemá potomka, tak sme nezmenili výšku v podstrome, iba pre parenta
-            {
-                return;
-            }
-        } // inak bude mať určite druhú výšku 2 alebo 0, teda musíme strom vyvážiť
+            node.BalanceFactor = 0;
+            childNode = node;
+            node = node.Parent as AVLNode<T>;
+        }
 
-        while (parentNode != null)
+        while (node != null)
         {
-            int balanceFactor = parentNode.HeightLeft - parentNode.HeightRight;
-            if (balanceFactor > 1) // ľavý podstrom je dlhší ako pravý
+            if (childNode == node.LeftChild)
             {
-                RotateRight(parentNode);
-            }
-            else if (balanceFactor < -1) // pravý podstrom je dlhší ako ľavý
-            {
-                RotateLeft(parentNode);
-            }
-
-            if (balanceFactor > 1 || balanceFactor < -1)
-            {
-                node = parentNode.Parent as AVLNode<T>;
-                parentNode = node!.Parent as AVLNode<T>;
+                node.BalanceFactor += 1; 
             }
             else
             {
-                node = parentNode;
-                parentNode = parentNode.Parent as AVLNode<T>;
+                node.BalanceFactor -= 1;
             }
 
-            if (parentNode != null)
+            if (node.BalanceFactor == 1 || node.BalanceFactor == -1)
             {
-                if (node == parentNode.LeftChild)
-                {
-                    parentNode.HeightLeft -= 1;
-                }
-                else
-                {
-                     parentNode.HeightRight -= 1;
-                }
+                break;
+            }
+            if (node.BalanceFactor == -2) // ľavý podstrom je dlhší ako pravý
+            {
+                RotateRight(node);
+                childNode = node.Parent as AVLNode<T>;
+                node = childNode!.Parent as AVLNode<T>;
+            }
+            else if (node.BalanceFactor == 2) // pravý podstrom je dlhší ako ľavý
+            {
+                RotateLeft(node);
+                childNode = node.Parent as AVLNode<T>;
+                node = childNode!.Parent as AVLNode<T>;
+            }
+            else
+            {
+                childNode = node;
+                node = node.Parent as AVLNode<T>;
             }
         }
     }
 
     public void InOrderBalanceCheck() // testovacia metóda na skontrolovanie vyváženia stromu
     {
-        AVLNode<T>? node = Root as AVLNode<T>;
-        if (Root == null)
-        {
-            return;
-        }
-        Stack<BinarySearchTreeNode<T>> nodeStack = new();
-
-        while (nodeStack.Count != 0 || node != null)
-        {
-            if (node != null)
-            {
-                nodeStack.Push(node);
-                node = node.LeftChild as AVLNode<T>;
-            }
-            else
-            {
-                node = nodeStack.Pop() as AVLNode<T>;
-                if (node.HeightLeft >= 0 && node.HeightRight >= 0)
-                {
-                    if ((node.HeightLeft - node.HeightRight > 1) || (node.HeightRight - node.HeightLeft > 1))
-                    {
-                        Console.WriteLine($"Unbalanced node: Left height = {node.HeightLeft}, Right height = {node.HeightRight}");
-                        return;
-                    }
-                }
-                node = node.RightChild as AVLNode<T>;
-            }
-        }
-        Console.WriteLine("AVL tree is balanced.");
+        return;
     }
 }
