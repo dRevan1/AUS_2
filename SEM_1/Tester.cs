@@ -12,7 +12,7 @@ public class Tester
 
         while (presentDataDic.Count < listSize)
         {
-            int insertValue = rand.Next(0, 200000000);
+            int insertValue = rand.Next(0, 200_000_000);
             if (!presentDataDic.ContainsKey(insertValue))
             {
                 presentDataDic[insertValue] = insertValue;
@@ -28,6 +28,25 @@ public class Tester
         foreach (int data in dataList)
         {
             bst.Insert(data);
+        }
+    }
+
+    public void AVLTreeBalanceTest(uint treeSize, uint replics, uint deleteCount) // testovacia metóda na skontrolovanie vyváženia stromu
+    {
+        for (int i = 1; i <= replics; i++)
+        {
+            AVLTree<int> avl = new AVLTree<int>();
+            Console.WriteLine("----------------------------------------");
+            Console.WriteLine($"In order balance check test number {i}:\n");
+            List<int> dataList = GetIntList(treeSize);
+            fillTreeWithData(avl, dataList);
+            for (int j = 0; j < deleteCount; j++)
+            {
+                avl.Delete(dataList.First());
+                dataList.RemoveAt(0);
+            }
+            avl.CheckBalanceFactors(avl.Root as AVLNode<int>);
+            Console.WriteLine("---------------------------------------------\n");
         }
     }
 
@@ -422,20 +441,6 @@ public class Tester
                 }
             }
             Console.WriteLine($"Interval search test number {i} passed.");
-        }
-    }
-
-    public void AVLTreeBalanceTest(uint treeSize, uint replics) // prerobiť cez rekurziu
-    {
-        for (int i = 1; i <= replics; i++)
-        {
-            Console.WriteLine("----------------------------------------");
-            Console.WriteLine($"AVL tree balance test number {i}:\n");
-            List<int> dataList = GetIntList(treeSize);
-            AVLTree<int> avl = new AVLTree<int>();
-            fillTreeWithData(avl, dataList);
-            avl.InOrderBalanceCheck();
-            Console.WriteLine("---------------------------------------------\n");
         }
     }
 }

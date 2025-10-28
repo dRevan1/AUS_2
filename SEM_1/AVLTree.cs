@@ -1,4 +1,6 @@
-﻿namespace SEM_1;
+﻿using System.Diagnostics;
+
+namespace SEM_1;
 
 public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
 {
@@ -13,6 +15,11 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
             {
                 pivot.BalanceFactor = -1;
                 leftChild.BalanceFactor = 1;
+            }
+            else if (leftChild.BalanceFactor == -2)
+            {
+                leftChild.BalanceFactor = 0;
+                pivot.BalanceFactor = 1;
             }
             else
             {
@@ -37,6 +44,11 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
                 pivot.BalanceFactor = 1;
                 rightChild.BalanceFactor = -1;
             }
+            else if (rightChild.BalanceFactor == 2)
+            {
+                rightChild.BalanceFactor = 0;
+                pivot.BalanceFactor = -1;
+            }
             else
             {
                 pivot.BalanceFactor = 0;
@@ -59,7 +71,7 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
         AVLNode<T>? leftPivotChild = leftPivot.RightChild as AVLNode<T>;
         RotateSimpleLeft(leftPivot);
         leftPivot.BalanceFactor = (leftPivotChild!.BalanceFactor == 1) ? -1 : 0;
-        leftPivotChild.BalanceFactor = -1;
+        leftPivotChild.BalanceFactor = (leftPivotChild.BalanceFactor == -1) ? -2 : -1;
         RotateRight(rightPivot);
     }
 
@@ -68,7 +80,7 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
         AVLNode<T>? rightPivotChild = rightPivot.LeftChild as AVLNode<T>;
         RotateSimpleRight(rightPivot);
         rightPivot.BalanceFactor = (rightPivotChild!.BalanceFactor == -1) ? 1 : 0;
-        rightPivotChild.BalanceFactor = 1;
+        rightPivotChild.BalanceFactor = (rightPivotChild.BalanceFactor == 1) ? 2 : 1;
         RotateLeft(leftPivot);
     }
 
@@ -150,17 +162,22 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
             {
                 break;
             }
-            if (node.BalanceFactor == -2) // ľavý podstrom je dlhší ako pravý
+            else if (node.BalanceFactor == -2 || node.BalanceFactor == 2)
             {
-                RotateRight(node);
+                if (node.BalanceFactor == -2) // ľavý podstrom je dlhší ako pravý
+                {
+                    RotateRight(node);
+                }
+                else if (node.BalanceFactor == 2) // pravý podstrom je dlhší ako ľavý
+                {
+                    RotateLeft(node);
+                }
                 childNode = node.Parent as AVLNode<T>;
                 node = childNode!.Parent as AVLNode<T>;
-            }
-            else if (node.BalanceFactor == 2) // pravý podstrom je dlhší ako ľavý
-            {
-                RotateLeft(node);
-                childNode = node.Parent as AVLNode<T>;
-                node = childNode!.Parent as AVLNode<T>;
+                if (childNode.BalanceFactor != 0)
+                {
+                    break;
+                }
             }
             else
             {
@@ -170,8 +187,24 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
         }
     }
 
-    public void InOrderBalanceCheck() // testovacia metóda na skontrolovanie vyváženia stromu
+    public int CheckBalanceFactors(AVLNode<int> root)
     {
-        return;
+        if (root == null)
+        {
+            return 0;
+        }
+        int leftHeight = (root.LeftChild != null) ? CheckBalanceFactors(root.LeftChild as AVLNode<int>) : 0;
+        int rightHeight = (root.RightChild != null) ? CheckBalanceFactors(root.RightChild as AVLNode<int>) : 0;
+        int balanceFactor = rightHeight - leftHeight;
+        if (root.BalanceFactor > 1 || root.BalanceFactor < -1)
+        {
+            Console.WriteLine($"Balance value is not correct - {root.BalanceFactor}");
+        }
+        if (balanceFactor != root.BalanceFactor)
+        {
+            Console.WriteLine($"Balance factor doesn't match the real value of node {root.Data}: calculated {balanceFactor}, stored {root.BalanceFactor}");
+        }
+
+        return (Math.Max(leftHeight, rightHeight) + 1);
     }
 }

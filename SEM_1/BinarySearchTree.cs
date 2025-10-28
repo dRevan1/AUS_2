@@ -150,7 +150,7 @@ public class BinarySearchTree<T> where T : IComparable<T>
             {
                 replacement.Parent = null;
             }
-            return null;
+            return Root;
         }
 
         if (parent.LeftChild == node) // vymazanie vrcholu, teda priradenie potenciálneho potomka mazaného vrchola (alebo null) na tú stranu parenta, kde sme mazali
@@ -164,6 +164,7 @@ public class BinarySearchTree<T> where T : IComparable<T>
         if (replacement != null) // nakoniec ak sme nahradzovali mazaný vrchol, tak treba prehodiť parenta toho náhradníka
         {
             replacement.Parent = parent;
+            parent = replacement;
         }
 
         return parent;

@@ -5,4 +5,4 @@ TesterThirdStructure avlTreeSetTester = new TesterThirdStructure();
 BinarySearchTree<int> bst = new BinarySearchTree<int>();
 AVLTree<int> avl = new AVLTree<int>();
 
-tester.BSTBaseTest(10000, avl);
+tester.DeletePerformanceTest(10_000_000, 2_000_000, 10);
