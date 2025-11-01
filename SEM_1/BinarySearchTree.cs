@@ -1,4 +1,5 @@
-﻿namespace SEM_1;
+﻿using System.Text;
+namespace SEM_1;
 
 public class BinarySearchTree<T> where T : IComparable<T>
 {
@@ -53,7 +54,7 @@ public class BinarySearchTree<T> where T : IComparable<T>
 
     protected virtual BinarySearchTreeNode<T> CreateNode(T data)
     {
-        return new BinarySearchTreeNode<T> { Data = data };
+        return new BinarySearchTreeNode<T>(data);
     }
 
     // Vráti node ak nájde (napr. pri insert a delete kontrolujeme, či existuje),
@@ -231,6 +232,69 @@ public class BinarySearchTree<T> where T : IComparable<T>
             return;
         }
         DeleteNode(nodeToDelete);
+    }
+
+    public void BuildTreeFromLevelOrder(List<(T data, T parentData, char childPosition)> records)
+    {
+        if (records.Count == 0)
+        {
+            return;
+        }
+        Root = CreateNode(records[0].data);
+
+        if (records.Count == 1)
+        {
+            return;
+        }
+        Queue<BinarySearchTreeNode<T>> queue = new Queue<BinarySearchTreeNode<T>>();
+        BinarySearchTreeNode<T> parent = Root;
+
+        for (int i = 1; i < records.Count; i++)
+        {
+            while (parent.Data.CompareTo(records[i].parentData) != 0)
+            {
+                parent = queue.Dequeue();
+            }
+            BinarySearchTreeNode<T> newNode = CreateNode(records[i].data);
+            newNode.Parent = parent;
+
+            if (records[i].childPosition == 'L')
+            {
+                parent.LeftChild = newNode;
+            }
+            else if (records[i].childPosition == 'R')
+            {
+                parent.RightChild = newNode;
+            }
+
+            queue.Enqueue(newNode);
+        }
+    }
+
+    public List<string> LevelOrderTraversal()
+    {
+        if (Root == null)
+        {
+            return new List<string>();
+        }
+        Queue<BinarySearchTreeNode<T>> queue = new Queue<BinarySearchTreeNode<T>>();
+        List<string> treeEntries = new List<string>();
+
+        queue.Enqueue(Root);
+        while (queue.Count > 0)
+        {
+            BinarySearchTreeNode<T> current = queue.Dequeue();
+            treeEntries.Add(current.GetNodeString());
+            if (current.LeftChild != null)
+            {
+                queue.Enqueue(current.LeftChild);
+            }
+            if (current.RightChild != null)
+            {
+                queue.Enqueue(current.RightChild);
+            }
+        }
+        return treeEntries;
     }
 
     public List<T> InOrderTraversal()

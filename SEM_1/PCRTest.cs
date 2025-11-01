@@ -10,6 +10,11 @@ public class PCRTest : IComparable<PCRTest>
         TestData = testData;
     }
 
+    public override string ToString()
+    {
+        return TestData.ToString()! + "\n";
+    }
+
     public int CompareTo(PCRTest? other)
     {
         if (other == null)

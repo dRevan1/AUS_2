@@ -7,6 +7,12 @@ public class DistrictID : IComparable<DistrictID>
     {
         ID = id;
     }
+
+    public override string ToString()
+    {
+        return ID.ToString() + "\n";
+    }
+
     public int CompareTo(DistrictID? other)
     {
         if (other == null)

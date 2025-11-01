@@ -15,4 +15,9 @@ public class PCRTestData
     public bool IsPositive { get; set; } // výsledok testu
     public double TestValue { get; set; } // hodnota testu
     public string Note { get; set; } // poznámka
+
+    public override string ToString()
+    {
+        return $"{TestID},{YearOfTest},{MonthOfTest},{DayOfTest},{HourOfTest},{MinuteOfTest},{PersonID},{TestSiteID},{RegionID},{DistrictID},{IsPositive},{TestValue},{Note}";
+    }
 }

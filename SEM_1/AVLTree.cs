@@ -63,7 +63,7 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
 
     protected override BinarySearchTreeNode<T> CreateNode(T data) // vytvára vrchol, aby bol typu AVLNode
     {
-        return new AVLNode<T> { Data = data, BalanceFactor = 0 }; 
+        return new AVLNode<T>(data, 0);
     }
 
     protected void RotateLeftRight(AVLNode<T> leftPivot, AVLNode<T> rightPivot) // ľavo-pravá rotácia - left pivot je ten, kde rotujeme doľava, a pravý naopak
@@ -184,6 +184,43 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
                 childNode = node;
                 node = node.Parent as AVLNode<T>;
             }
+        }
+    }
+
+    public void BuildTreeFromLevelOrder(List<(T data, T parentData, char childPosition, int balanceFactor)> records) // overload metódy z BST
+    {
+        if (records.Count == 0)
+        {
+            return;
+        }
+        Root = new AVLNode<T>(records[0].data, records[0].balanceFactor);
+
+        if (records.Count == 1)
+        {
+            return;
+        }
+        Queue<AVLNode<T>> queue = new Queue<AVLNode<T>>();
+        AVLNode<T>? parent = Root as AVLNode<T>;
+
+        for (int i = 1; i < records.Count; i++)
+        {
+            while (parent!.Data.CompareTo(records[i].parentData) != 0)
+            {
+                parent = queue.Dequeue();
+            }
+            AVLNode<T> newNode = new AVLNode<T>(records[i].data, records[i].balanceFactor);
+            newNode.Parent = parent;
+
+            if (records[i].childPosition == 'L')
+            {
+                parent.LeftChild = newNode;
+            }
+            else if (records[i].childPosition == 'R')
+            {
+                parent.RightChild = newNode;
+            }
+
+            queue.Enqueue(newNode);
         }
     }
 

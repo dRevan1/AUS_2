@@ -5,7 +5,7 @@ namespace SEM_1;
 public class PCRTestDatabase
 {
     public AVLTree<Person> People { get; set; } = new AVLTree<Person>();
-    public AVLTree<Person> RegionDistrictIDs { get; set; } = new AVLTree<Person>();
+    public AVLTree<RegionID> RegionDistrictIDs { get; set; } = new AVLTree<RegionID>();
     public AVLTree<uint> PCRTestIDs { get; set; } = new AVLTree<uint>();
     public AVLTree<Region> Regions { get; set; } = new AVLTree<Region>();
     public AVLTree<District> Districts { get; set; } = new AVLTree<District>();
@@ -58,6 +58,60 @@ public class PCRTestDatabase
         return sickPeopleCopy;
     }
 
+    private void InsertPCRTest(PCRTestData testData)
+    {
+        PCRTest newTest = new PCRTest(testData);
+        PCRTestByID newTestByID = new PCRTestByID(testData);
+        Person? person = People.Find(new Person { PersonID = testData.PersonID });
+        Region? region = Regions.Find(new Region { ID = testData.RegionID });
+        District? district = Districts.Find(new District { ID = testData.DistrictID });
+        TestSite? testSite = TestSites.Find(new TestSite { ID = testData.TestSiteID });
+
+        person!.Tests.Insert(newTest);  // pcr test do osoby a všeobecných zoznamov 
+        person.TestsByID.Insert(newTestByID);
+        AllTests.Insert(newTest);
+        AllTestsByID.Insert(newTestByID);
+
+        region!.AllTests.Insert(newTest); // do kraju, okresu a testovacieho miesta  
+        district!.AllTests.Insert(newTest);
+        testSite!.Tests.Insert(newTest);  
+
+        if (testData.IsPositive) // ešte ak je pozitívny tak sa pridá do pozitívnych stromov
+        {
+            region.PositiveTests.Insert(newTest);
+            district.PositiveTests.Insert(newTest);
+            PositiveTests.Insert(newTest);
+        }
+    }
+
+    private void DeletePCRTest(PCRTestByID testByID, bool personWasDeleted)
+    {
+        PCRTest test = new PCRTest(testByID.TestData);
+        Person? person = People.Find(new Person { PersonID = testByID.TestData.PersonID });
+        Region? region = Regions.Find(new Region { ID = testByID.TestData.RegionID });
+        District? district = Districts.Find(new District { ID = testByID.TestData.DistrictID });
+        TestSite? testSite = TestSites.Find(new TestSite { ID = testByID.TestData.TestSiteID });
+
+        AllTests.Delete(test);  // mažeme vo všeobecných, potom v stromoch pre kraje, okresy, test miesta
+        AllTestsByID.Delete(testByID);
+        region!.AllTests.Delete(test);
+        district!.AllTests.Delete(test);
+        testSite!.Tests.Delete(test);
+
+        if (testByID.TestData.IsPositive) // ak je pozitívny, musíme vymzať aj tu
+        {
+            region.PositiveTests.Delete(test);
+            district.PositiveTests.Delete(test);
+            PositiveTests.Delete(test);
+        }
+
+        if (!personWasDeleted) // ak sa delete volal z metódy, kde sa maže podľa ID, tak ešte vymažeme z osoby, inak sa osoba maže po vymazaní jej testov všade, takže tu už netreba mazať
+        {
+            person!.Tests.Delete(test);
+            person.TestsByID.Delete(testByID);
+        }
+    }
+
     // # 1
     public void AddPCRTest(PCRTestData testData)
     {
@@ -67,7 +121,25 @@ public class PCRTestDatabase
         {
             return;
         }
-        person.Tests.Insert(new PCRTest(testData));
+        RegionID? regionID = RegionDistrictIDs.Find(new RegionID(testData.RegionID));
+        if (regionID == null)
+        {
+            return;
+        }
+        else
+        {
+            DistrictID? districtID = regionID.DistrictIDs.Find(new DistrictID(testData.DistrictID));
+            if (districtID == null)
+            {
+                return;
+            }
+        }
+        TestSite? testSite = TestSites.Find(new TestSite { ID = testData.TestSiteID });
+        if (testSite == null)
+        {
+            return;
+        }
+        InsertPCRTest(testData);
     }
 
     // # 2 - má byť výsledok testu
@@ -341,10 +413,31 @@ public class PCRTestDatabase
         People.Insert(person);
     }
 
+    // # 20
+    public void DeletePCRTestByID(uint testID)
+    {
+        PCRTestByID? testToDelete = AllTestsByID.Find(new PCRTestByID(new PCRTestData { TestID = testID }));
+        if (testToDelete == null)
+        {
+            return;
+        }
+        DeletePCRTest(testToDelete, false);
+    }
+
     // # 21
     public void DeletePerson(string personID)
     {
-        Person person = new Person { PersonID = personID };
+        Person? person = People.Find(new Person { PersonID = personID });
+        if (person == null)
+        {
+            return;
+        }
+        List<PCRTestByID> testsToDelete = person.TestsByID.InOrderTraversal();
+
+        foreach (PCRTestByID test in testsToDelete)
+        {
+            DeletePCRTest(test, true);
+        }
         People.Delete(person);
     }
 }
