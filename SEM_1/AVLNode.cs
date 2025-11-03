@@ -8,12 +8,4 @@ public class AVLNode<T> : BinarySearchTreeNode<T> where T : IComparable<T>
     {
         BalanceFactor = balanceFactor;
     }
-
-    public override string GetNodeString()
-    {
-        string data = base.GetNodeString();  // zoberie info o data classe a otcovi, už sa len pridá balance factor
-        data.Insert(data.IndexOf('\n'), $",{BalanceFactor}");
-
-        return data;
-    }
 }

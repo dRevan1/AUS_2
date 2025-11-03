@@ -13,24 +13,19 @@ public class Person : IComparable<Person>
     public AVLTree<PCRTest> Tests { get; set; } = new AVLTree<PCRTest>();
     public AVLTree<PCRTestByID> TestsByID { get; set; } = new AVLTree<PCRTestByID>();
 
+    public Person(string personID, string name, string surname, byte dayOfBirth, byte monthOfBirth, ushort yearOfBirth)
+    {
+        PersonID = personID;
+        Name = name;
+        Surname = surname;
+        DayOfBirth = dayOfBirth;
+        MonthOfBirth = monthOfBirth;
+        YearOfBirth = yearOfBirth;
+    }
+
     public override string ToString()
     {
-        StringBuilder sb = new StringBuilder();
-        sb.Append($"{PersonID},{Name},{Surname},{DayOfBirth},{MonthOfBirth},{YearOfBirth}");
-        List<string> testsList = Tests.LevelOrderTraversal();
-        List<string> testsByIDList = TestsByID.LevelOrderTraversal();
-
-        sb.AppendLine($",{testsList.Count},{testsByIDList.Count}");
-        foreach (string test in testsList)
-        {
-            sb.Append(test);
-        }
-        foreach (string testByID in testsByIDList)
-        {
-            sb.Append(testByID);
-        }
-
-        return sb.ToString();
+        return $"{PersonID};{Name};{Surname};{DayOfBirth};{MonthOfBirth};{YearOfBirth}\n";
     }
 
     public int CompareTo(Person? other)

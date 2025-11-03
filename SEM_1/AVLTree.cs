@@ -187,43 +187,6 @@ public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
         }
     }
 
-    public void BuildTreeFromLevelOrder(List<(T data, T parentData, char childPosition, int balanceFactor)> records) // overload metódy z BST
-    {
-        if (records.Count == 0)
-        {
-            return;
-        }
-        Root = new AVLNode<T>(records[0].data, records[0].balanceFactor);
-
-        if (records.Count == 1)
-        {
-            return;
-        }
-        Queue<AVLNode<T>> queue = new Queue<AVLNode<T>>();
-        AVLNode<T>? parent = Root as AVLNode<T>;
-
-        for (int i = 1; i < records.Count; i++)
-        {
-            while (parent!.Data.CompareTo(records[i].parentData) != 0)
-            {
-                parent = queue.Dequeue();
-            }
-            AVLNode<T> newNode = new AVLNode<T>(records[i].data, records[i].balanceFactor);
-            newNode.Parent = parent;
-
-            if (records[i].childPosition == 'L')
-            {
-                parent.LeftChild = newNode;
-            }
-            else if (records[i].childPosition == 'R')
-            {
-                parent.RightChild = newNode;
-            }
-
-            queue.Enqueue(newNode);
-        }
-    }
-
     public int CheckBalanceFactors(AVLNode<int> root)
     {
         if (root == null)

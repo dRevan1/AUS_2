@@ -8,24 +8,13 @@ public class Region : IComparable<Region>
     public AVLTree<PCRTest> PositiveTests { get; set; } = new AVLTree<PCRTest>();
     public AVLTree<PCRTest> AllTests { get; set; } = new AVLTree<PCRTest>();
 
+    public Region(uint id)
+    {
+        ID = id;
+    }
     public override string ToString()
     {
-        StringBuilder sb = new StringBuilder();
-        sb.Append($"{ID}");
-        List<string> positiveTests = PositiveTests.LevelOrderTraversal();
-        List<string> allTests = AllTests.LevelOrderTraversal();
-        sb.AppendLine($",{positiveTests.Count},{allTests.Count}");
-
-        foreach (string test in positiveTests)
-        {
-            sb.Append(test);
-        }
-        foreach (string test in allTests)
-        {
-            sb.Append(test);
-        }
-
-        return sb.ToString();
+        return $"{ID}\n";
     }
 
     public int CompareTo(Region? other)

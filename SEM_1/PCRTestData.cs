@@ -16,8 +16,27 @@ public class PCRTestData
     public double TestValue { get; set; } // hodnota testu
     public string Note { get; set; } // poznámka
 
+    public PCRTestData(byte minuteOfTest, byte hourOfTest, byte dayOfTest, byte monthOfTest, ushort yearOfTest,
+        string personID, uint testID, uint testSiteID, uint regionID, uint districtID,
+        bool isPositive, double testValue, string note)
+    {
+        MinuteOfTest = minuteOfTest;
+        HourOfTest = hourOfTest;
+        DayOfTest = dayOfTest;
+        MonthOfTest = monthOfTest;
+        YearOfTest = yearOfTest;
+        PersonID = personID;
+        TestID = testID;
+        TestSiteID = testSiteID;
+        RegionID = regionID;
+        DistrictID = districtID;
+        IsPositive = isPositive;
+        TestValue = testValue;
+        Note = note;
+    }
+
     public override string ToString()
     {
-        return $"{TestID},{YearOfTest},{MonthOfTest},{DayOfTest},{HourOfTest},{MinuteOfTest},{PersonID},{TestSiteID},{RegionID},{DistrictID},{IsPositive},{TestValue},{Note}";
+        return $"{TestID};{YearOfTest};{MonthOfTest};{DayOfTest};{HourOfTest};{MinuteOfTest};{PersonID};{TestSiteID};{RegionID};{DistrictID};{IsPositive};{TestValue};{Note}";
     }
 }

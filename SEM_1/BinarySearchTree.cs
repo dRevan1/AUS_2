@@ -234,40 +234,17 @@ public class BinarySearchTree<T> where T : IComparable<T>
         DeleteNode(nodeToDelete);
     }
 
-    public void BuildTreeFromLevelOrder(List<(T data, T parentData, char childPosition)> records)
+    public void BuildTreeFromLevelOrder(List<T> records)
     {
         if (records.Count == 0)
         {
             return;
         }
-        Root = CreateNode(records[0].data);
-
-        if (records.Count == 1)
-        {
-            return;
-        }
-        Queue<BinarySearchTreeNode<T>> queue = new Queue<BinarySearchTreeNode<T>>();
-        BinarySearchTreeNode<T> parent = Root;
+        Root = CreateNode(records[0]);
 
         for (int i = 1; i < records.Count; i++)
         {
-            while (parent.Data.CompareTo(records[i].parentData) != 0)
-            {
-                parent = queue.Dequeue();
-            }
-            BinarySearchTreeNode<T> newNode = CreateNode(records[i].data);
-            newNode.Parent = parent;
-
-            if (records[i].childPosition == 'L')
-            {
-                parent.LeftChild = newNode;
-            }
-            else if (records[i].childPosition == 'R')
-            {
-                parent.RightChild = newNode;
-            }
-
-            queue.Enqueue(newNode);
+            Insert(records[i]);
         }
     }
 
@@ -284,7 +261,7 @@ public class BinarySearchTree<T> where T : IComparable<T>
         while (queue.Count > 0)
         {
             BinarySearchTreeNode<T> current = queue.Dequeue();
-            treeEntries.Add(current.GetNodeString());
+            treeEntries.Add(current.Data.ToString()!);
             if (current.LeftChild != null)
             {
                 queue.Enqueue(current.LeftChild);

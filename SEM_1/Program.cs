@@ -5,4 +5,7 @@ TesterThirdStructure avlTreeSetTester = new TesterThirdStructure();
 BinarySearchTree<int> bst = new BinarySearchTree<int>();
 AVLTree<int> avl = new AVLTree<int>();
 
-tester.DeletePerformanceTest(10_000_000, 2_000_000, 10);
+PCRTestDatabase app = new PCRTestDatabase();
+//app.PopulateDatabase(20, 100, 20, 20);
+app.ImportDatabase();
+app.ExportDatabase();

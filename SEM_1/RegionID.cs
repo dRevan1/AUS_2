@@ -16,7 +16,7 @@ public class RegionID : IComparable<RegionID>
         StringBuilder sb = new StringBuilder();
         sb.Append($"{ID}");
         List<string> districtIDs = DistrictIDs.LevelOrderTraversal();
-        sb.AppendLine($",{districtIDs.Count}");
+        sb.AppendLine($";{districtIDs.Count}");
 
         foreach (string districtID in districtIDs)
         {

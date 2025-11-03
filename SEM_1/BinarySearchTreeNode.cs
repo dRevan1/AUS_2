@@ -14,15 +14,4 @@ public class BinarySearchTreeNode<T> where T : IComparable<T>
         LeftChild = null;
         RightChild = null;
     }
-
-    public virtual string GetNodeString()
-    {
-        string data = Data.ToString()!, childrenInfo;
-        childrenInfo = LeftChild != null ? ",1" : ",0";
-        childrenInfo += RightChild != null ? ",1" : ",0";
-
-        data.Insert(data.IndexOf('\n'), childrenInfo);
-
-        return data;
-    }
 }
