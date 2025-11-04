@@ -1,6 +1,6 @@
 ﻿using C5;
 using System.Diagnostics;
-namespace SEM_1;
+namespace SEM_1.Core;
 
 public class TesterThirdStructure : Tester
 {
@@ -264,7 +264,10 @@ public class TesterThirdStructure : Tester
             {
                 min = dataList[j];
                 startTime = Stopwatch.GetTimestamp();
-                treeSet.RangeFromTo(min, max);
+                foreach (var x in treeSet.RangeFromTo(min, max)) 
+                {
+                   long result = x;
+                }
                 totalTreeSetTime += Stopwatch.GetElapsedTime(startTime);
             }
 

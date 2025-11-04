@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace SEM_1;
+﻿namespace SEM_1.Core;
 
 public class Person : IComparable<Person>
 {
@@ -30,7 +28,8 @@ public class Person : IComparable<Person>
 
     public int CompareTo(Person? other)
     {
-        if (other == null)         {
+        if (other == null)
+        {
             return 1;
         }
         uint personID = uint.Parse(PersonID), otherPersonID = uint.Parse(other.PersonID);

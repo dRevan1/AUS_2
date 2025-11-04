@@ -1,5 +1,4 @@
-﻿using System.Text;
-namespace SEM_1;
+﻿namespace SEM_1.Core;
 
 public class BinarySearchTree<T> where T : IComparable<T>
 {

@@ -1,4 +1,4 @@
-﻿namespace SEM_1;
+﻿namespace SEM_1.Core;
 
 public class PCRTest : IComparable<PCRTest>
 {
@@ -46,6 +46,7 @@ public class PCRTest : IComparable<PCRTest>
         {
             return TestData.MinuteOfTest.CompareTo(other.TestData.MinuteOfTest);
         }
+
         return TestData.TestID.CompareTo(other.TestData.TestID); // podľa ID
     }
 }

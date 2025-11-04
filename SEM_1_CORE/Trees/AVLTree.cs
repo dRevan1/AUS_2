@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace SEM_1;
+﻿namespace SEM_1.Core;
 
 public class AVLTree<T> : BinarySearchTree<T> where T : IComparable<T>
 {

@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace SEM_1;
+namespace SEM_1.Core;
 
 public class RegionID : IComparable<RegionID>
 {

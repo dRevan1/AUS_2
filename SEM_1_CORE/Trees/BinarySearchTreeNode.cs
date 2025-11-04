@@ -1,4 +1,4 @@
-﻿namespace SEM_1;
+﻿namespace SEM_1.Core;
 
 public class BinarySearchTreeNode<T> where T : IComparable<T>
 {

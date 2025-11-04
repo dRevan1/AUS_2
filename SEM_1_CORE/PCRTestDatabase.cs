@@ -1,12 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using static System.Net.Mime.MediaTypeNames;
 
-namespace SEM_1;
+namespace SEM_1.Core;
 
 public class PCRTestDatabase
 {
     public AVLTree<Person> People { get; set; } = new AVLTree<Person>();
     public AVLTree<RegionID> RegionDistrictIDs { get; set; } = new AVLTree<RegionID>();
-    public AVLTree<uint> PCRTestIDs { get; set; } = new AVLTree<uint>();
     public AVLTree<Region> Regions { get; set; } = new AVLTree<Region>();
     public AVLTree<District> Districts { get; set; } = new AVLTree<District>();
     public AVLTree<TestSite> TestSites { get; set; } = new AVLTree<TestSite>();
@@ -215,7 +214,7 @@ public class PCRTestDatabase
                 testSiteID,
                 regionID,
                 districtID,
-                rand.NextDouble() < 0.5,
+                false,
                 Math.Round(rand.NextDouble() * 100, 2),
                 $"Note for test {testID}"
             );
@@ -248,11 +247,11 @@ public class PCRTestDatabase
     {
         string[] lines;
 
-        lines = File.ReadAllLines("people_export1.csv");
+        lines = File.ReadAllLines("people_export2.csv");
         List<Person> people = LoadPeople(lines);
         People.BuildTreeFromLevelOrder(people);
 
-        lines = File.ReadAllLines("regions_export1.csv");
+        lines = File.ReadAllLines("regions_export2.csv");
         List<Region> regions = new List<Region>();
         foreach (string line in lines)
         {
@@ -262,7 +261,7 @@ public class PCRTestDatabase
         }
         Regions.BuildTreeFromLevelOrder(regions);
 
-        lines = File.ReadAllLines("districts_export1.csv");
+        lines = File.ReadAllLines("districts_export2.csv");
         List<District> districts = new List<District>();
         foreach (string line in lines)
         {
@@ -272,7 +271,7 @@ public class PCRTestDatabase
         }
         Districts.BuildTreeFromLevelOrder(districts);
 
-        lines = File.ReadAllLines("test_sites_export1.csv");
+        lines = File.ReadAllLines("test_sites_export2.csv");
         List<TestSite> testSites = new List<TestSite>();
         foreach (string line in lines)
         {
@@ -282,7 +281,7 @@ public class PCRTestDatabase
         }
         TestSites.BuildTreeFromLevelOrder(testSites);
 
-        lines = File.ReadAllLines("region_district_ids_export1.csv");
+        lines = File.ReadAllLines("region_district_ids_export2.csv");
         List<RegionID> regionDistrictIDs = new List<RegionID>();
         int i = 0;
         while (i < lines.Length)
@@ -308,7 +307,7 @@ public class PCRTestDatabase
         }
         RegionDistrictIDs.BuildTreeFromLevelOrder(regionDistrictIDs);
 
-        lines = File.ReadAllLines("all_tests_export1.csv");
+        lines = File.ReadAllLines("all_tests_export2.csv");
         List<PCRTest> tests = LoadPCRTests(lines);
         foreach (PCRTest test in tests)
         {
@@ -316,48 +315,79 @@ public class PCRTestDatabase
         }
     }
 
+    public Person? FindPerson(string personID)
+    {
+        Person? person = new Person(personID, "", "", 0, 0, 0);
+        person = People.Find(person);
+
+        if (person == null)
+        {
+            return null;
+        }
+
+        return person;
+    }
+
     // # 1
-    public void AddPCRTest(PCRTestData testData)
+    public string AddPCRTest(PCRTestData testData)
     {
         Person? person = new Person (testData.PersonID, "", "", 0, 0, 0);
         person = People.Find(person);
         if (person == null)
         {
-            return;
+            return "Person with this ID doesn't exist!";
         }
         RegionID? regionID = RegionDistrictIDs.Find(new RegionID(testData.RegionID));
         if (regionID == null)
         {
-            return;
+            return "This region doesn't exist!";
         }
         else
         {
             DistrictID? districtID = regionID.DistrictIDs.Find(new DistrictID(testData.DistrictID));
             if (districtID == null)
             {
-                return;
+                return "Region doesn't contain such district!";
             }
         }
         TestSite? testSite = TestSites.Find(new TestSite(testData.TestSiteID));
         if (testSite == null)
         {
-            return;
+            return "This test site doesn't exist";
         }
+
+        if (testData.TestValue > 50.0)
+        {
+            testData.IsPositive = true;
+        }
+
+        Random rand = new Random();
+        if (testData.TestID == 0)
+        {
+            testData.TestID = (uint)rand.Next(200_000_000);
+        }
+        PCRTestByID? testByID = new PCRTestByID(testData);
+
+        while (AllTestsByID.Find(testByID) != null)
+        {
+            testData.TestID = (uint)rand.Next(200_000_000);
+        }
+
         InsertPCRTest(testData);
+        return "";
     }
 
     // # 2 - má byť výsledok testu
-    public PCRTest? FindPCRTest(string personID, uint testID)
+    public PCRTestByID? FindPCRTest(string personID, uint testID)
     {
-        Person? person = new Person(personID, "", "", 0, 0, 0);
-        person = People.Find(person);
+        Person? person = FindPerson(personID);
         if (person == null)
         {
             return null;
         }
         PCRTestData testData = new PCRTestData(0, 0, 0, 0, 0, personID, testID, 0, 0, 0, false, 0.0, "");
-        PCRTest? test = new PCRTest(testData);
-
+        PCRTestByID? test = new PCRTestByID(testData);
+        test = person.TestsByID.Find(test);
         if (test == null)
         {
             return null;
@@ -389,6 +419,7 @@ public class PCRTestDatabase
         {
             return null;
         }
+        max.TestData.TestID = AllTestsByID.FindMax()!.TestData.TestID + 1;
         List<PCRTest> positiveTestsInRange = district.PositiveTests.IntervalSearch(min, max);
         List<PCRTest> testsCopy = positiveTestsInRange.Select(test => new PCRTest(test.TestData)).ToList();
         return testsCopy;
@@ -403,13 +434,14 @@ public class PCRTestDatabase
         {
             return null;
         }
+        max.TestData.TestID = AllTestsByID.FindMax()!.TestData.TestID + 1;
         List<PCRTest> testsInRange = district.AllTests.IntervalSearch(min, max);
         List<PCRTest> testsCopy = testsInRange.Select(test => new PCRTest(test.TestData)).ToList();
         return testsCopy;
     }
 
     // # 6
-    public List<PCRTest>? GetPositiveTestsByRegion(uint regionID, PCRTest min, PCRTest max)
+    public List<PCRTest>? GetAllPositiveTestsByRegion(uint regionID, PCRTest min, PCRTest max)
     {
         Region? region = new Region(regionID);
         region = Regions.Find(region);
@@ -417,6 +449,7 @@ public class PCRTestDatabase
         {
             return null;
         }
+        max.TestData.TestID = AllTestsByID.FindMax()!.TestData.TestID + 1;
         List<PCRTest> positiveTestsInRange = region.PositiveTests.IntervalSearch(min, max);
         List<PCRTest> testsCopy = positiveTestsInRange.Select(test => new PCRTest(test.TestData)).ToList();
         return testsCopy;
@@ -431,6 +464,7 @@ public class PCRTestDatabase
         {
             return null;
         }
+        max.TestData.TestID = AllTestsByID.FindMax()!.TestData.TestID + 1;
         List<PCRTest> testsInRange = region.AllTests.IntervalSearch(min, max);
         List<PCRTest> testsCopy = testsInRange.Select(test => new PCRTest(test.TestData)).ToList();
         return testsCopy;
@@ -439,6 +473,7 @@ public class PCRTestDatabase
     // # 8
     public List<PCRTest> GetAllPositiveTests(PCRTest min, PCRTest max)
     {
+        max.TestData.TestID = AllTestsByID.FindMax()!.TestData.TestID + 1;
         List<PCRTest> positiveTestsInRange = PositiveTests.IntervalSearch(min, max);
         List<PCRTest> testsCopy = positiveTestsInRange.Select(test => new PCRTest(test.TestData)).ToList();
         return testsCopy;
@@ -447,6 +482,7 @@ public class PCRTestDatabase
     // # 9
     public List<PCRTest> GetAllTests(PCRTest min, PCRTest max)
     {
+        max.TestData.TestID = AllTestsByID.FindMax()!.TestData.TestID + 1;
         List<PCRTest> testsInRange = AllTests.IntervalSearch(min, max);
         List<PCRTest> testsCopy = testsInRange.Select(test => new PCRTest(test.TestData)).ToList();
         return testsCopy;
@@ -461,6 +497,7 @@ public class PCRTestDatabase
         {
             return null;
         }
+        max.TestData.TestID = AllTestsByID.FindMax()!.TestData.TestID + 1;
 
         PCRTest min = GetMinForInterval(max, daysFromTest);
         List<PCRTest> positiveTestsInRange = district.PositiveTests.IntervalSearch(min, max);
@@ -477,6 +514,7 @@ public class PCRTestDatabase
         {
             return null;
         }
+        max.TestData.TestID = AllTestsByID.FindMax()!.TestData.TestID + 1;
 
         PCRTest min = GetMinForInterval(max, daysFromTest);
         List<PCRTest> positiveTestsInRange = district.PositiveTests.IntervalSearch(min, max);
@@ -494,7 +532,7 @@ public class PCRTestDatabase
         {
             return null;
         }
-
+        max.TestData.TestID = AllTestsByID.FindMax()!.TestData.TestID + 1;
         PCRTest min = GetMinForInterval(max, daysFromTest);
         List<PCRTest> positiveTestsInRange = region.PositiveTests.IntervalSearch(min, max);
 
@@ -504,6 +542,7 @@ public class PCRTestDatabase
     // # 13
     public List<Person> GetAllSickPeople(PCRTest max, int daysFromTest)
     {
+        max.TestData.TestID = AllTestsByID.FindMax()!.TestData.TestID + 1;
         PCRTest min = GetMinForInterval(max, daysFromTest);
         List<PCRTest> positiveTestsInRange = PositiveTests.IntervalSearch(min, max);
         return GetSickPeopleList(positiveTestsInRange);
@@ -512,6 +551,7 @@ public class PCRTestDatabase
     // # 14
     public List<Person> GetSickPersonFromEveryDistrict(PCRTest max, int daysFromTest)
     {
+        max.TestData.TestID = AllTestsByID.FindMax()!.TestData.TestID + 1;
         List<District> districts = Districts.InOrderTraversal();
         PCRTest min = GetMinForInterval(max, daysFromTest);
         List<Person> sickPeople = new List<Person>();
@@ -543,8 +583,9 @@ public class PCRTestDatabase
     }
 
     // # 15
-    public List<(District district, uint sickPeople)> GetDistrictsBySickPeople(PCRTest max, int daysFromTest)
+    public List<District> GetDistrictsBySickPeople(PCRTest max, int daysFromTest)
     {
+        max.TestData.TestID = AllTestsByID.FindMax()!.TestData.TestID + 1;
         List<District> districts = Districts.InOrderTraversal();
         PCRTest min = GetMinForInterval(max, daysFromTest);
         List<(District district, uint sickPeople)> districtAndPatientCount = new List<(District district, uint sickPeople)>();
@@ -556,12 +597,18 @@ public class PCRTestDatabase
         }
 
         districtAndPatientCount = districtAndPatientCount.OrderByDescending(district => district.sickPeople).ToList();
-        return districtAndPatientCount;
+        List<District> sortedDistricts = new List<District>();
+        foreach ((District district, uint sickPeople) districtCount in districtAndPatientCount)
+        {
+            sortedDistricts.Add(districtCount.district);
+        }
+        return sortedDistricts;
     }
 
     // # 16
-    public List<(Region region, uint sickPeople)> GetRegionbBySickPeople(PCRTest max, int daysFromTest)
+    public List<Region> GetRegionBySickPeople(PCRTest max, int daysFromTest)
     {
+        max.TestData.TestID = AllTestsByID.FindMax()!.TestData.TestID + 1;
         List<Region> regions = Regions.InOrderTraversal();
         PCRTest min = GetMinForInterval(max, daysFromTest);
         List<(Region region, uint sickPeople)> regionAndPatientCount = new List<(Region region, uint sickPeople)>();
@@ -573,7 +620,12 @@ public class PCRTestDatabase
         }
 
         regionAndPatientCount = regionAndPatientCount.OrderByDescending(region => region.sickPeople).ToList();
-        return regionAndPatientCount;
+        List<Region> sortedRegions = new List<Region>();
+        foreach ((Region region, uint sickPeople) districtCount in regionAndPatientCount)
+        {
+            sortedRegions.Add(districtCount.region);
+        }
+        return sortedRegions;
     }
 
     // # 17
@@ -585,6 +637,7 @@ public class PCRTestDatabase
         {
             return null;
         }
+        max.TestData.TestID = AllTestsByID.FindMax()!.TestData.TestID + 1;
         List<PCRTest> testsInRange = testSite.Tests.IntervalSearch(min, max);
         List<PCRTest> testsCopy = testsInRange.Select(test => new PCRTest(test.TestData)).ToList();
         return testsCopy;
@@ -604,29 +657,36 @@ public class PCRTestDatabase
     }
 
     // # 19
-    public void AddPerson(Person person)
+    public string AddPerson(Person person)
     {
+        Person? found = People.Find(person);
+        if (found != null)
+        {
+            return "This person already exists in the database!";
+        }
         People.Insert(person);
+        return "Person successfully added.";
     }
 
     // # 20
-    public void DeletePCRTestByID(uint testID)
+    public string DeletePCRTestByID(uint testID)
     {
         PCRTestByID? testToDelete = AllTestsByID.Find(new PCRTestByID(new PCRTestData(0, 0, 0, 0, 0, "", testID, 0, 0, 0, false, 0.0, "")));
         if (testToDelete == null)
         {
-            return;
+            return "Test with this ID wasn't found in the database!";
         }
         DeletePCRTest(testToDelete, false);
+        return "Test was successfully deleted.";
     }
 
     // # 21
-    public void DeletePerson(string personID)
+    public string DeletePerson(string personID)
     {
         Person? person = People.Find(new Person(personID, "", "", 0, 0, 0));
         if (person == null)
         {
-            return;
+            return "Person with this ID wasn't found in the database!";
         }
         List<PCRTestByID> testsToDelete = person.TestsByID.InOrderTraversal();
 
@@ -635,5 +695,6 @@ public class PCRTestDatabase
             DeletePCRTest(test, true);
         }
         People.Delete(person);
+        return "Person was successfully deleted along with all tests.";
     }
 }
