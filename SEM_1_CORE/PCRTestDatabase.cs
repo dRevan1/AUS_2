@@ -208,7 +208,7 @@ public class PCRTestDatabase
                 (byte)rand.Next(0, 24),
                 (byte)rand.Next(1, 29),
                 (byte)rand.Next(1, 13),
-                (ushort)rand.Next(2020, 2024),
+                (ushort)rand.Next(2023, 2025),
                 personID,
                 i,
                 testSiteID,
@@ -406,7 +406,7 @@ public class PCRTestDatabase
         }
 
         List<PCRTest> personTests = person.Tests.InOrderTraversal();
-        List<PCRTest> testsCopy = personTests.Select(test => new PCRTest(test.TestData)).ToList(); // AI otázka na kopírovanie
+        List<PCRTest> testsCopy = personTests.Select(test => new PCRTest(test.TestData)).ToList();
         return testsCopy;
     }
 
@@ -559,6 +559,10 @@ public class PCRTestDatabase
         foreach (District district in districts)
         {
             List<PCRTest> positiveTests = district.PositiveTests.IntervalSearch(min, max);
+            if (positiveTests.Count == 0)
+            {
+                return sickPeople;
+            }
             PCRTest currentMax = positiveTests[0];
             uint currrentValue = (uint)currentMax.TestData.TestValue * 1_000_000;
 

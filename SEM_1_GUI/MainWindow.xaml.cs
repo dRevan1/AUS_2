@@ -14,7 +14,7 @@ namespace SEM_1_GUI
 
         private void PopulateBtn_Click(object sender, RoutedEventArgs e)
         {
-            pcrTestDatabase.PopulateDatabase(10, 100, 1000, 5000);
+            pcrTestDatabase.PopulateDatabase(10, 100, 1000, 10_000);
             MessageBox.Show("Databse has been populated");
         }
 
